@@ -41,6 +41,7 @@
 
   const app = initializeApp(firebaseConfig);
   const db = getDatabase(app);
+set(ref(db, 'teste'), 'funcionou');
 
   window.sendGif = function(url) {
     set(ref(db, 'gifAtual'), url + '?' + Date.now());
