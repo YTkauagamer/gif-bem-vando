@@ -6,25 +6,37 @@
 </head>
 <body>
 
-  <h2>Painel de GIFs 🎬</h2>
+<h2>Painel de GIFs 🎬</h2>
 
-  <button onclick="sendGif('https://media.giphy.com/media/ICOgUNjpvO0PC/giphy.gif')">
-    GIF 1
-  </button>
+<button onclick="sendGif('https://media.giphy.com/media/ICOgUNjpvO0PC/giphy.gif')">
+  Bem-vindo 🎉
+</button>
 
-  <button onclick="sendGif('https://media.giphy.com/media/3oEjI6SIIHBdRxXI40/giphy.gif')">
-    GIF 2
-  </button>
+<button onclick="sendGif('https://media.giphy.com/media/l0MYt5jPR6QX5pnqM/giphy.gif')">
+  Hype 🔥
+</button>
 
-  <button onclick="sendGif('https://media.giphy.com/media/l0MYt5jPR6QX5pnqM/giphy.gif')">
-    GIF 3
-  </button>
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-app.js";
+  import { getDatabase, ref, set } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-database.js";
 
-  <script>
-    function sendGif(url) {
-      localStorage.setItem('overlayGif', url + '?' + Date.now());
-    }
-  </script>
+  const firebaseConfig = {
+    apiKey: "SUA_API_KEY",
+    authDomain: "SEU_DOMINIO",
+    databaseURL: "SUA_DATABASE_URL",
+    projectId: "SEU_PROJECT_ID",
+    storageBucket: "SEU_BUCKET",
+    messagingSenderId: "SEU_ID",
+    appId: "SEU_APP_ID"
+  };
+
+  const app = initializeApp(firebaseConfig);
+  const db = getDatabase(app);
+
+  window.sendGif = function(url) {
+    set(ref(db, 'gifAtual'), url + '?' + Date.now());
+  }
+</script>
 
 </body>
 </html>
