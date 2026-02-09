@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <title>Painel de GIFs</title>
+</head>
+<body>
+
+  <h2>Painel de GIFs 🎬</h2>
+
+  <button onclick="sendGif('https://media.giphy.com/media/ICOgUNjpvO0PC/giphy.gif')">
+    GIF 1
+  </button>
+
+  <button onclick="sendGif('https://media.giphy.com/media/3oEjI6SIIHBdRxXI40/giphy.gif')">
+    GIF 2
+  </button>
+
+  <button onclick="sendGif('https://media.giphy.com/media/l0MYt5jPR6QX5pnqM/giphy.gif')">
+    GIF 3
+  </button>
+
+  <script>
+    function sendGif(url) {
+      localStorage.setItem('overlayGif', url + '?' + Date.now());
+    }
+  </script>
+
+</body>
+</html>
