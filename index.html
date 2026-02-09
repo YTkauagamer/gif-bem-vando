@@ -3,12 +3,57 @@
 <head>
   <meta charset="UTF-8">
   <title>Overlay GIF</title>
-  <link rel="stylesheet" href="style.css">
+  <style>
+    body {
+      margin: 0;
+      background: transparent;
+      overflow: hidden;
+    }
+    img {
+      position: absolute;
+      bottom: 50px;
+      right: 50px;
+      max-width: 300px;
+      display: none;
+    }
+  </style>
 </head>
 <body>
 
-  <img id="gif" src="" />
+<img id="gif">
 
-  <script src="script.js"></script>
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-app.js";
+  import { getDatabase, ref, onValue } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-database.js";
+
+  const firebaseConfig = {
+    apiKey: "SUA_API_KEY",
+    authDomain: "SEU_DOMINIO",
+    databaseURL: "SUA_DATABASE_URL",
+    projectId: "SEU_PROJECT_ID",
+    storageBucket: "SEU_BUCKET",
+    messagingSenderId: "SEU_ID",
+    appId: "SEU_APP_ID"
+  };
+
+  const app = initializeApp(firebaseConfig);
+  const db = getDatabase(app);
+
+  const gifEl = document.getElementById('gif');
+  const gifRef = ref(db, 'gifAtual');
+
+  onValue(gifRef, (snapshot) => {
+    const url = snapshot.val();
+    if (!url) return;
+
+    gifEl.src = url;
+    gifEl.style.display = 'block';
+
+    setTimeout(() => {
+      gifEl.style.display = 'none';
+    }, 5000);
+  });
+</script>
+
 </body>
 </html>
