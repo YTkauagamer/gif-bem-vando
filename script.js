@@ -1,14 +1,41 @@
-const img = document.getElementById('gif');
+// CONFIGURAÇÃO DO FIREBASE
+var firebaseConfig = {
+  apiKey: "COLE_SUA_API_KEY_AQUI",
+  authDomain: "gif-overlay-65024.firebaseapp.com",
+  databaseURL: "https://gif-overlay-65024-default-rtdb.firebaseio.com",
+  projectId: "gif-overlay-65024"
+};
 
-window.addEventListener('storage', () => {
-  const gif = localStorage.getItem('overlayGif');
+// INICIALIZA
+firebase.initializeApp(firebaseConfig);
 
-  if (gif) {
-    img.src = gif;
-    img.style.display = 'block';
+// REFERÊNCIA DO BANCO
+var database = firebase.database();
 
-    setTimeout(() => {
-      img.style.display = 'none';
-    }, 5000); // tempo do gif na tela (5s)
-  }
+/* =========================
+   FUNÇÃO DO PAINEL (BOTÕES)
+   ========================= */
+function enviarImagem(url) {
+  database.ref("overlay").set({
+    url: url,
+    timestamp: Date.now()
+  });
+}
+
+/* =========================
+   OVERLAY (ESCUTA FIREBASE)
+   ========================= */
+database.ref("overlay").on("value", function(snapshot) {
+  var data = snapshot.val();
+  if (!data || !data.url) return;
+
+  var img = document.getElementById("imgOverlay");
+  if (!img) return;
+
+  img.src = data.url;
+  img.style.display = "block";
+
+  setTimeout(function () {
+    img.style.display = "none";
+  }, 5000);
 });
