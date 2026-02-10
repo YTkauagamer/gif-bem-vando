@@ -1,6 +1,6 @@
 // CONFIGURAÇÃO DO FIREBASE
 var firebaseConfig = {
-  apiKey: "COLE_SUA_API_KEY_AQUI",
+  apiKey: "AIzaSyACKzi7eHGLRRhYyg1W6Zh7jWszkdrHDAw",
   authDomain: "gif-overlay-65024.firebaseapp.com",
   databaseURL: "https://gif-overlay-65024-default-rtdb.firebaseio.com",
   projectId: "gif-overlay-65024"
