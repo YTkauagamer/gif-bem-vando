@@ -1,72 +1,38 @@
 <!DOCTYPE html>
-<html lang="pt-BR">
+<html lang="pt-br">
 <head>
   <meta charset="UTF-8">
   <title>Overlay GIF</title>
+
   <style>
     body {
       margin: 0;
       background: transparent;
       overflow: hidden;
     }
-    img {
+
+    #overlay-img {
       position: absolute;
-      bottom: 50px;
-      right: 50px;
-      max-width: 300px;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      width: 500px;
+      height: 300px;
       display: none;
+      object-fit: fill;
     }
   </style>
 </head>
 <body>
 
-<img id="gif">
+  <img id="overlay-img">
 
-<script type="module">
-  import { initializeApp } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-app.js";
-  import { getDatabase, ref, onValue } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-database.js";
+  <!-- Firebase -->
+  <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
 
-  const firebaseConfig = {
- apiKey: "AIzaSyACKzi7eHGLRRhYyg1W6Zh7jWszkdrHDAw",
-
-  authDomain: "gif-overlay-65024.firebaseapp.com",
-
-  databaseURL: "https://gif-overlay-65024-default-rtdb.firebaseio.com",
-
-  projectId: "gif-overlay-65024",
-
-  storageBucket: "gif-overlay-65024.firebasestorage.app",
-
-  messagingSenderId: "322560921868",
-
-  appId: "1:322560921868:web:ebb03e45396e09a38ef929",
-
-  measurementId: "G-KY2DTB7DE6"
-
-
-  };
-
-  const app = initializeApp(firebaseConfig);
-  const db = getDatabase(app);
-
-  const gifEl = document.getElementById('gif');
-  const gifRef = ref(db, 'gifAtual');
-
-  onValue(gifRef, (snapshot) => {
-    const url = snapshot.val();
-    if (!url) return;
-
-    gifEl.src = url;
-    gifEl.style.display = 'block';
-
-    setTimeout(() => {
-      gifEl.style.display = 'none';
-    }, 5000);
-  });
-</script>
-<script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
-<script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
-<script src="script.js"></script>
+  <!-- Script -->
+  <script src="script.js"></script>
 
 </body>
 </html>
