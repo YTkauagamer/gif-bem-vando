@@ -13,6 +13,8 @@
 
     #imagem {
       position: absolute;
+      bottom: 0;
+      right: 0;
       width: 500px;
       height: 300px;
       object-fit: contain;
@@ -27,41 +29,40 @@
 </head>
 <body>
 
-  <img id="imagem" />
+<img id="imagem" />
 
-  <!-- Firebase CDN -->
-  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js"></script>
+<!-- Firebase v8 (mesma versão do painel) -->
+<script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
+<script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
 
-  <script>
-    const firebaseConfig = {
-      apiKey: "AIzaSyACKzi7eHGLRRhYyg1W6Zh7jWszkdrHDAw",
-      authDomain: "gif-bem-vando.firebaseapp.com",
-      databaseURL: "https://gif-bem-vando-default-rtdb.firebaseio.com",
-      projectId: "gif-bem-vando",
-      storageBucket: "gif-bem-vando.appspot.com",
-      messagingSenderId: "123456789",
-      appId: "1:123456789:web:123456789"
-    };
+<script>
+  var firebaseConfig = {
+    apiKey: "AIzaSyACKzi7eHGLRRhYyg1W6Zh7jWszkdrHDAw",
+    authDomain: "gif-overlay-65024.firebaseapp.com",
+    databaseURL: "https://gif-overlay-65024-default-rtdb.firebaseio.com",
+    projectId: "gif-overlay-65024",
+    storageBucket: "gif-overlay-65024.appspot.com",
+    messagingSenderId: "6502465024",
+    appId: "1:6502465024:web:8c0d1e123abc456"
+  };
 
-    firebase.initializeApp(firebaseConfig);
-    const database = firebase.database();
+  firebase.initializeApp(firebaseConfig);
 
-    const imagem = document.getElementById("imagem");
+  var imagem = document.getElementById("imagem");
 
-    database.ref("imagem").on("value", (snapshot) => {
-      const url = snapshot.val();
+  firebase.database().ref("overlay").on("value", function(snapshot) {
+    var data = snapshot.val();
 
-      if (url) {
-        imagem.src = url;
-        imagem.classList.add("mostrar");
+    if (data && data.imagem) {
+      imagem.src = data.imagem;
+      imagem.classList.add("mostrar");
 
-        setTimeout(() => {
-          imagem.classList.remove("mostrar");
-        }, 5000);
-      }
-    });
-  </script>
+      setTimeout(function() {
+        imagem.classList.remove("mostrar");
+      }, 5000);
+    }
+  });
+</script>
 
 </body>
 </html>
