@@ -3,42 +3,64 @@
 <head>
   <meta charset="UTF-8">
   <title>Painel de GIFs</title>
+
+  <style>
+    body {
+      background: #111;
+      font-family: Arial, sans-serif;
+      text-align: center;
+      color: white;
+    }
+    h1 {
+      margin-top: 20px;
+    }
+    .botoes {
+      margin-top: 30px;
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 10px;
+    }
+    button {
+      padding: 10px 15px;
+      font-size: 14px;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      background: #ff0066;
+      color: white;
+      transition: 0.2s;
+    }
+    button:hover {
+      background: #ff3385;
+      transform: scale(1.05);
+    }
+  </style>
 </head>
-<body style="background:#111;color:white;text-align:center;font-family:sans-serif;">
+<body>
 
-  <h1>Painel de GIFs 🎮🔥</h1>
+  <h1>Painel de GIFs 🎬</h1>
 
-  <div>
+  <div class="botoes">
 
     <!-- IB B -->
     <button onclick="enviarImagem('https://i.ibb.co/HfD8jhy4/Captura-de-tela-2026-01-28-221616.png')">Print 1</button>
-
     <button onclick="enviarImagem('https://i.ibb.co/4nQddY5C/Opera-Instantaneo-2023-10-11-235208-scratch-mit-edu.png')">Scratch</button>
-
     <button onclick="enviarImagem('https://i.ibb.co/hFZ2CXZr/image.png')">Imagem</button>
-
     <button onclick="enviarImagem('https://i.ibb.co/KcrxHG7b/IMG-20260107-WA0002.jpg')">Foto 1</button>
-
     <button onclick="enviarImagem('https://i.ibb.co/zTKLJv9Y/IMG-20260107-WA0003.jpg')">Foto 2</button>
-
     <button onclick="enviarImagem('https://i.ibb.co/zWngG3Qq/IMG-20260107-WA0004.jpg')">Foto 3</button>
-
     <button onclick="enviarImagem('https://i.ibb.co/rGvnJhPT/Captura-de-tela-2026-01-28-205218.png')">Print 2</button>
-
     <button onclick="enviarImagem('https://i.ibb.co/KcyQ9YG3/Captura-de-tela-2026-01-12-211800.png')">Print 3</button>
 
     <!-- TENOR -->
-    <button onclick="enviarImagem('https://c.tenor.com/KO80NCIjQAUAAAAd/tenor.gif')">
-      Gatinho Rindo
-    </button>
+    <button onclick="enviarImagem('https://c.tenor.com/KO80NCIjQAUAAAAd/tenor.gif')">Gatinho Rindo</button>
+    <button onclick="enviarImagem('https://media.tenor.com/3amxjgmRIlEAAAAi/renanplay-calvosfera.gif')">RenanPlay</button>
+    <button onclick="enviarImagem('https://media1.tenor.com/m/agdCGfymskQAAAAC/ricagames-boxeador.gif')">Rica Games</button>
 
-    <button onclick="enviarImagem('https://media.tenor.com/3amxjgmRIlEAAAAi/renanplay-calvosfera.gif')">
-      RenanPlay
-    </button>
-
-    <button onclick="enviarImagem('https://media1.tenor.com/m/agdCGfymskQAAAAC/ricagames-boxeador.gif')">
-      Rica Games
-    </button>
+    <!-- NOVOS -->
+    <button onclick="enviarImagem('https://media1.tenor.com/IZDWhH292tQAAAAC/falaro.gif')">FALARO</button>
+    <button onclick="enviarImagem('https://media.tenor.com/Pt9ZtY3HwjoAAAAj/emoji-face-orange-biting-nails.gif')">LARANJA</button>
 
   </div>
 
@@ -53,8 +75,8 @@
       databaseURL: "https://gif-overlay-65024-default-rtdb.firebaseio.com",
       projectId: "gif-overlay-65024",
       storageBucket: "gif-overlay-65024.appspot.com",
-      messagingSenderId: "123456789",
-      appId: "1:123456789:web:abc123"
+      messagingSenderId: "6502465024",
+      appId: "1:6502465024:web:overlay"
     };
 
     firebase.initializeApp(firebaseConfig);
