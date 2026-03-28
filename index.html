@@ -1,5 +1,75 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Overlay</title>
+<link rel="icon" href="data:,">
+
+<style>
+body{
+  margin:0;
+  background:transparent;
+  overflow:hidden;
+}
+
+/* GIF */
+#imagem{
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%) scale(1);
+  width: 800px;
+  height: 600px;
+  object-fit: contain;
+  opacity: 0;
+  transition: opacity 0.7s ease, transform 0.7s ease;
+}
+
+/* CHAT */
+#chat{
+  position: fixed;
+  left: 20px;
+  bottom: 20px;
+  width: 320px;
+  font-family: Arial;
+}
+
+.msg {
+  background: linear-gradient(90deg, rgba(0,0,0,0.8), rgba(0,0,0,0.4));
+  margin: 6px;
+  padding: 10px;
+  border-radius: 10px;
+  color: white;
+  font-size: 14px;
+  border-left: 4px solid #00ffcc;
+  animation: slideFade 0.4s ease;
+}
+
+@keyframes slideFade {
+  from {
+    opacity: 0;
+    transform: translateY(15px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+</style>
+</head>
+<body>
+
+<!-- CHAT -->
+<div id="chat"></div>
+
+<!-- GIF -->
+<img id="imagem">
+
+<script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
+<script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
+
 <script>
-// 🔥 FIREBASE (SEU SISTEMA DE GIF)
+// 🔥 FIREBASE
 var firebaseConfig = {
   apiKey: "AIzaSyACKzi7eHGLRRhYyg1W6Zh7jWszkdrHDAw",
   authDomain: "gif-overlay-65024.firebaseapp.com",
@@ -14,7 +84,7 @@ firebase.initializeApp(firebaseConfig);
 
 var imagem = document.getElementById("imagem");
 
-// 🔥 GIF COM ANIMAÇÃO MELHORADA (PASSO 3)
+// 🎬 FUNÇÃO DO GIF (ANIMAÇÃO PROFISSIONAL)
 function mostrarGif(url){
   imagem.src = url;
 
@@ -32,7 +102,7 @@ function mostrarGif(url){
   }, 5000);
 }
 
-// 🔥 RECEBER GIF DO FIREBASE
+// 🔥 RECEBER DO PAINEL
 firebase.database().ref("overlay").on("value", function(snapshot){
   var data = snapshot.val();
 
@@ -51,27 +121,25 @@ const CHANNEL_ID = "UC4kUqHcYkRz6t8XHk0v1xVw";
 let liveChatId = null;
 let nextPageToken = "";
 
-// pegar live ativa
+// pegar live
 async function getLiveVideoId(){
   const res = await fetch(
     `https://www.googleapis.com/youtube/v3/search?part=snippet&channelId=${CHANNEL_ID}&eventType=live&type=video&key=${API_KEY}`
   );
-
   const data = await res.json();
   return data.items[0]?.id?.videoId;
 }
 
-// pegar chatId
+// pegar chat id
 async function getChatId(videoId){
   const res = await fetch(
     `https://www.googleapis.com/youtube/v3/videos?part=liveStreamingDetails&id=${videoId}&key=${API_KEY}`
   );
-
   const data = await res.json();
   return data.items[0].liveStreamingDetails.activeLiveChatId;
 }
 
-// buscar mensagens
+// mensagens
 async function getMessages(){
   const res = await fetch(
     `https://www.googleapis.com/youtube/v3/liveChat/messages?liveChatId=${liveChatId}&part=snippet,authorDetails&key=${API_KEY}&pageToken=${nextPageToken}`
@@ -88,22 +156,19 @@ async function getMessages(){
   });
 }
 
-// mostrar mensagens na tela
+// mostrar chat
 function addMessage(nome, texto){
   const div = document.createElement("div");
   div.className = "msg";
-
   div.innerHTML = `<b>${nome}:</b> ${texto}`;
 
   const chat = document.getElementById("chat");
   chat.appendChild(div);
 
-  // limite de mensagens
   if(chat.children.length > 8){
     chat.removeChild(chat.firstChild);
   }
 
-  // remover após 50 segundos (SEU PEDIDO)
   setTimeout(() => {
     if(div.parentNode){
       div.remove();
@@ -111,7 +176,7 @@ function addMessage(nome, texto){
   }, 50000);
 }
 
-// iniciar chat
+// iniciar
 async function iniciarChat(){
   const videoId = await getLiveVideoId();
 
@@ -128,3 +193,6 @@ async function iniciarChat(){
 iniciarChat();
 
 </script>
+
+</body>
+</html>
