@@ -1,73 +1,3 @@
-<!DOCTYPE html>
-<html>
-<head>
-<meta charset="UTF-8">
-<title>Overlay</title>
-<link rel="icon" href="data:,">
-
-<style>
-body{
-  margin:0;
-  background:transparent;
-  overflow:hidden;
-}
-
-/* GIF */
-#imagem{
-  position: fixed;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  width: 800px;
-  height: 600px;
-  object-fit: contain;
-  opacity: 0;
-  transition: opacity 0.7s ease-in-out;
-}
-
-/* CHAT */
-#chat{
-  position: fixed;
-  left: 20px;
-  bottom: 20px;
-  width: 320px;
-  font-family: Arial;
-}
-
-.msg {
-  background: linear-gradient(90deg, rgba(0,0,0,0.8), rgba(0,0,0,0.4));
-  margin: 6px;
-  padding: 10px;
-  border-radius: 10px;
-  color: white;
-  font-size: 14px;
-  border-left: 4px solid #00ffcc;
-  animation: slideFade 0.4s ease;
-}
-
-@keyframes slideFade {
-  from {
-    opacity: 0;
-    transform: translateY(15px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-</style>
-</head>
-<body>
-
-<!-- CHAT -->
-<div id="chat"></div>
-
-<!-- GIF -->
-<img id="imagem">
-
-<script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
-<script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
-
 <script>
 // 🔥 FIREBASE (SEU SISTEMA DE GIF)
 var firebaseConfig = {
@@ -84,7 +14,25 @@ firebase.initializeApp(firebaseConfig);
 
 var imagem = document.getElementById("imagem");
 
-// Mostrar GIF vindo do painel
+// 🔥 GIF COM ANIMAÇÃO MELHORADA (PASSO 3)
+function mostrarGif(url){
+  imagem.src = url;
+
+  imagem.style.opacity = "0";
+  imagem.style.transform = "translate(-50%, -50%) scale(0.9)";
+
+  imagem.offsetHeight;
+
+  imagem.style.opacity = "1";
+  imagem.style.transform = "translate(-50%, -50%) scale(1)";
+
+  setTimeout(() => {
+    imagem.style.opacity = "0";
+    imagem.style.transform = "translate(-50%, -50%) scale(1.1)";
+  }, 5000);
+}
+
+// 🔥 RECEBER GIF DO FIREBASE
 firebase.database().ref("overlay").on("value", function(snapshot){
   var data = snapshot.val();
 
@@ -92,25 +40,6 @@ firebase.database().ref("overlay").on("value", function(snapshot){
     mostrarGif(data.imagem);
   }
 });
-
-// Função de exibir GIF
-function mostrarGif(url){
-  imagem.src = url;
-
-  // começa invisível
-  imagem.style.opacity = "0";
-
-  // força atualização (truque pra animar certo)
-  imagem.offsetHeight;
-
-  // fade IN suave
-  imagem.style.opacity = "1";
-
-  // depois de 5s começa sair
-  setTimeout(() => {
-    imagem.style.opacity = "0";
-  }, 5000);
-}
 
 //////////////////////////////////////////////////
 // 💬 CHAT DO YOUTUBE
@@ -159,7 +88,7 @@ async function getMessages(){
   });
 }
 
-// mostrar na tela
+// mostrar mensagens na tela
 function addMessage(nome, texto){
   const div = document.createElement("div");
   div.className = "msg";
@@ -199,6 +128,3 @@ async function iniciarChat(){
 iniciarChat();
 
 </script>
-
-</body>
-</html>
