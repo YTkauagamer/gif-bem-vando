@@ -5,13 +5,21 @@ body {
 }
 
 
-#imgOverlay {
-  width: 500px;
-  height: 300px;
-  display: none;
+/* 🎬 GIF (OVERLAY) */
+#imagem {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%) scale(1);
+  width: 800px;
+  height: 600px;
   object-fit: contain;
+  opacity: 0;
+  transition: opacity 0.7s ease, transform 0.7s ease;
 }
-/* CHAT */
+
+
+/* 💬 CHAT */
 #chat {
   position: fixed;
   left: 20px;
