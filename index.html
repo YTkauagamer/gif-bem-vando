@@ -7,35 +7,61 @@
 
 <style>
 body{
-  <div id="chat"></div>
   margin:0;
   background:transparent;
   overflow:hidden;
 }
 
+/* GIF */
 #imagem{
- position: fixed;
+  position: fixed;
   top: 50%;
   left: 50%;
   transform: translate(-50%, -50%);
-
   width: 800px;
   height: 600px;
   object-fit: contain;
-
   opacity: 0;
   transition: opacity 0.7s ease-in-out;
+}
+
+/* CHAT */
+#chat{
+  position: fixed;
+  left: 20px;
+  bottom: 20px;
+  width: 320px;
+  font-family: Arial;
+}
+
+.msg{
+  background: rgba(0,0,0,0.6);
+  margin: 5px;
+  padding: 8px;
+  border-radius: 8px;
+  color: white;
+  animation: fade 0.3s;
+}
+
+@keyframes fade {
+  from { opacity: 0; transform: translateY(10px);}
+  to { opacity: 1; }
 }
 </style>
 </head>
 <body>
 
+<!-- CHAT -->
+<div id="chat"></div>
+
+<!-- GIF -->
 <img id="imagem">
 
 <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
 <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
 
 <script>
+// 🔥 FIREBASE (SEU SISTEMA DE GIF)
 var firebaseConfig = {
   apiKey: "AIzaSyACKzi7eHGLRRhYyg1W6Zh7jWszkdrHDAw",
   authDomain: "gif-overlay-65024.firebaseapp.com",
@@ -50,18 +76,104 @@ firebase.initializeApp(firebaseConfig);
 
 var imagem = document.getElementById("imagem");
 
+// Mostrar GIF vindo do painel
 firebase.database().ref("overlay").on("value", function(snapshot){
   var data = snapshot.val();
 
   if(data && data.imagem){
-    imagem.src = data.imagem;
-    imagem.style.opacity = "1";
-
-    setTimeout(function(){
-      imagem.style.opacity = "0";
-    },5000);
+    mostrarGif(data.imagem);
   }
 });
+
+// Função de exibir GIF
+function mostrarGif(url){
+  imagem.src = url;
+  imagem.style.opacity = "1";
+
+  setTimeout(function(){
+    imagem.style.opacity = "0";
+  },5000);
+}
+
+//////////////////////////////////////////////////
+// 💬 CHAT DO YOUTUBE
+//////////////////////////////////////////////////
+
+const API_KEY = "AIzaSyDoDTtN60hLIitjBW1YNxIQmuZW5YfflCg";
+const CHANNEL_ID = "UC4kUqHcYkRz6t8XHk0v1xVw";
+
+let liveChatId = null;
+let nextPageToken = "";
+
+// pegar live ativa
+async function getLiveVideoId(){
+  const res = await fetch(
+    `https://www.googleapis.com/youtube/v3/search?part=snippet&channelId=${CHANNEL_ID}&eventType=live&type=video&key=${API_KEY}`
+  );
+
+  const data = await res.json();
+  return data.items[0]?.id?.videoId;
+}
+
+// pegar chatId
+async function getChatId(videoId){
+  const res = await fetch(
+    `https://www.googleapis.com/youtube/v3/videos?part=liveStreamingDetails&id=${videoId}&key=${API_KEY}`
+  );
+
+  const data = await res.json();
+  return data.items[0].liveStreamingDetails.activeLiveChatId;
+}
+
+// buscar mensagens
+async function getMessages(){
+  const res = await fetch(
+    `https://www.googleapis.com/youtube/v3/liveChat/messages?liveChatId=${liveChatId}&part=snippet,authorDetails&key=${API_KEY}&pageToken=${nextPageToken}`
+  );
+
+  const data = await res.json();
+  nextPageToken = data.nextPageToken;
+
+  data.items.forEach(msg=>{
+    const nome = msg.authorDetails.displayName;
+    const texto = msg.snippet.displayMessage;
+
+    addMessage(nome, texto);
+  });
+}
+
+// mostrar na tela
+function addMessage(nome, texto){
+  const div = document.createElement("div");
+  div.className = "msg";
+
+  div.innerHTML = `<b>${nome}:</b> ${texto}`;
+
+  const chat = document.getElementById("chat");
+  chat.appendChild(div);
+
+  // limite de mensagens
+  if(chat.children.length > 10){
+    chat.removeChild(chat.firstChild);
+  }
+}
+
+// iniciar chat
+async function iniciarChat(){
+  const videoId = await getLiveVideoId();
+
+  if(!videoId){
+    console.log("Sem live");
+    return;
+  }
+
+  liveChatId = await getChatId(videoId);
+
+  setInterval(getMessages, 3000);
+}
+
+iniciarChat();
+
 </script>
 
 </body>
