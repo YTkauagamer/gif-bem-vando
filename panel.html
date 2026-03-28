@@ -113,10 +113,9 @@ var firebaseConfig = {
 
 firebase.initializeApp(firebaseConfig);
 
-function enviarImagem(url){
+function enviarGif(url){
   firebase.database().ref("overlay").set({
-    imagem: url,
-    timestamp: Date.now()
+    imagem: url
   });
 }
 </script>
