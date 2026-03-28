@@ -12,53 +12,69 @@ var firebaseConfig = {
 firebase.initializeApp(firebaseConfig);
 var db = firebase.database();
 
-// ================= FUNÇÃO DE ENVIO =================
-function enviarImagem(url) {
+
+// ================= FUNÇÃO DE ENVIO (PAINEL) =================
+function enviarGif(url) {
   db.ref("overlay").set({
     imagem: url,
     timestamp: Date.now()
   });
+
+  console.log("GIF enviado:", url);
 }
 
-// ================= BOTÕES (PAINEL) =================
+
+// ================= BOTÕES (SE EXISTIREM) =================
 if (document.getElementById("btn1")) {
 
   document.getElementById("btn1").onclick = () =>
-    enviarImagem("https://i.ibb.co/HfD8jhy4/Captura-de-tela-2026-01-28-221616.png");
+    enviarGif("https://i.ibb.co/HfD8jhy4/Captura-de-tela-2026-01-28-221616.png");
 
   document.getElementById("btn2").onclick = () =>
-    enviarImagem("https://i.ibb.co/4nQddY5C/Opera-Instantaneo-2023-10-11-235208-scratch-mit-edu.png");
+    enviarGif("https://i.ibb.co/4nQddY5C/Opera-Instantaneo-2023-10-11-235208-scratch-mit-edu.png");
 
   document.getElementById("btn3").onclick = () =>
-    enviarImagem("https://i.ibb.co/hFZ2CXZr/image.png");
+    enviarGif("https://i.ibb.co/hFZ2CXZr/image.png");
 
   document.getElementById("btn4").onclick = () =>
-    enviarImagem("https://i.ibb.co/KcrxHG7b/IMG-20260107-WA0002.jpg");
+    enviarGif("https://i.ibb.co/KcrxHG7b/IMG-20260107-WA0002.jpg");
 
   document.getElementById("btn5").onclick = () =>
-    enviarImagem("https://i.ibb.co/zTKLJv9Y/IMG-20260107-WA0003.jpg");
+    enviarGif("https://i.ibb.co/zTKLJv9Y/IMG-20260107-WA0003.jpg");
 
   document.getElementById("btn6").onclick = () =>
-    enviarImagem("https://i.ibb.co/zWngG3Qq/IMG-20260107-WA0004.jpg");
+    enviarGif("https://i.ibb.co/zWngG3Qq/IMG-20260107-WA0004.jpg");
 
   document.getElementById("btn7").onclick = () =>
-    enviarImagem("https://i.ibb.co/rGvnJhPT/Captura-de-tela-2026-01-28-205218.png");
+    enviarGif("https://i.ibb.co/rGvnJhPT/Captura-de-tela-2026-01-28-205218.png");
 
   document.getElementById("btn8").onclick = () =>
-    enviarImagem("https://i.ibb.co/KcyQ9YG3/Captura-de-tela-2026-01-12-211800.png");
+    enviarGif("https://i.ibb.co/KcyQ9YG3/Captura-de-tela-2026-01-12-211800.png");
 }
+
 
 // ================= OVERLAY (OBS) =================
 db.ref("overlay").on("value", (snap) => {
   if (!snap.val()) return;
 
-  const img = document.getElementById("overlay-img");
+  const img = document.getElementById("imagem"); // 🔥 ID CORRETO
   if (!img) return;
 
-  img.src = snap.val().imagem;
-  img.style.display = "block";
+  const url = snap.val().imagem;
+
+  // animação igual do index
+  img.src = url;
+
+  img.style.opacity = "0";
+  img.style.transform = "translate(-50%, -50%) scale(0.9)";
+
+  img.offsetHeight;
+
+  img.style.opacity = "1";
+  img.style.transform = "translate(-50%, -50%) scale(1)";
 
   setTimeout(() => {
-    img.style.display = "none";
+    img.style.opacity = "0";
+    img.style.transform = "translate(-50%, -50%) scale(1.1)";
   }, 5000);
 });
