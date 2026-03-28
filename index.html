@@ -96,11 +96,20 @@ firebase.database().ref("overlay").on("value", function(snapshot){
 // Função de exibir GIF
 function mostrarGif(url){
   imagem.src = url;
+
+  // começa invisível
+  imagem.style.opacity = "0";
+
+  // força atualização (truque pra animar certo)
+  imagem.offsetHeight;
+
+  // fade IN suave
   imagem.style.opacity = "1";
 
-  setTimeout(function(){
+  // depois de 5s começa sair
+  setTimeout(() => {
     imagem.style.opacity = "0";
-  },5000);
+  }, 5000);
 }
 
 //////////////////////////////////////////////////
