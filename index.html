@@ -34,18 +34,26 @@ body{
   font-family: Arial;
 }
 
-.msg{
-  background: rgba(0,0,0,0.6);
-  margin: 5px;
-  padding: 8px;
-  border-radius: 8px;
+.msg {
+  background: linear-gradient(90deg, rgba(0,0,0,0.8), rgba(0,0,0,0.4));
+  margin: 6px;
+  padding: 10px;
+  border-radius: 10px;
   color: white;
-  animation: fade 0.3s;
+  font-size: 14px;
+  border-left: 4px solid #00ffcc;
+  animation: slideFade 0.4s ease;
 }
 
-@keyframes fade {
-  from { opacity: 0; transform: translateY(10px);}
-  to { opacity: 1; }
+@keyframes slideFade {
+  from {
+    opacity: 0;
+    transform: translateY(15px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 </style>
 </head>
@@ -153,9 +161,16 @@ function addMessage(nome, texto){
   chat.appendChild(div);
 
   // limite de mensagens
-  if(chat.children.length > 10){
+  if(chat.children.length > 8){
     chat.removeChild(chat.firstChild);
   }
+
+  // remover após 50 segundos (SEU PEDIDO)
+  setTimeout(() => {
+    if(div.parentNode){
+      div.remove();
+    }
+  }, 50000);
 }
 
 // iniciar chat
