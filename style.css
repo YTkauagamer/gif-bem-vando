@@ -22,8 +22,8 @@ body {
 /* 💬 CHAT */
 #chat {
   position: fixed;
-  right: 40px;
-  bottom: 40px;
+  right: 400px;
+  bottom: 400px;
   width: 800px;
   display: flex;
   flex-direction: column;
