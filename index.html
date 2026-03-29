@@ -59,17 +59,14 @@ body{
 </head>
 <body>
 
-<!-- CHAT -->
 <div id="chat"></div>
-
-<!-- GIF -->
 <img id="imagem">
 
 <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
 <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
 
 <script>
-// 🔥 FIREBASE
+// ================= FIREBASE =================
 var firebaseConfig = {
   apiKey: "AIzaSyACKzi7eHGLRRhYyg1W6Zh7jWszkdrHDAw",
   authDomain: "gif-overlay-65024.firebaseapp.com",
@@ -84,13 +81,12 @@ firebase.initializeApp(firebaseConfig);
 
 var imagem = document.getElementById("imagem");
 
-// 🎬 FUNÇÃO DO GIF (ANIMAÇÃO PROFISSIONAL)
+// 🎬 GIF
 function mostrarGif(url){
   imagem.src = url;
 
   imagem.style.opacity = "0";
   imagem.style.transform = "translate(-50%, -50%) scale(0.9)";
-
   imagem.offsetHeight;
 
   imagem.style.opacity = "1";
@@ -102,65 +98,26 @@ function mostrarGif(url){
   }, 5000);
 }
 
-// 🔥 RECEBER DO PAINEL
 firebase.database().ref("overlay").on("value", function(snapshot){
   var data = snapshot.val();
-
   if(data && data.imagem){
     mostrarGif(data.imagem);
   }
 });
 
 //////////////////////////////////////////////////
-// 💬 CHAT DO YOUTUBE
+// 💬 FUNÇÃO GLOBAL DE CHAT (AGORA COM PLATAFORMA)
 //////////////////////////////////////////////////
 
-const API_KEY = "AIzaSyDoDTtN60hLIitjBW1YNxIQmuZW5YfflCg";
-const CHANNEL_ID = "UC4kUqHcYkRz6t8XHk0v1xVw";
-
-let liveChatId = null;
-let nextPageToken = "";
-
-// pegar live
-async function getLiveVideoId(){
-  const res = await fetch(
-    `https://www.googleapis.com/youtube/v3/search?part=snippet&channelId=${CHANNEL_ID}&eventType=live&type=video&key=${API_KEY}`
-  );
-  const data = await res.json();
-  return data.items[0]?.id?.videoId;
-}
-
-// pegar chat id
-async function getChatId(videoId){
-  const res = await fetch(
-    `https://www.googleapis.com/youtube/v3/videos?part=liveStreamingDetails&id=${videoId}&key=${API_KEY}`
-  );
-  const data = await res.json();
-  return data.items[0].liveStreamingDetails.activeLiveChatId;
-}
-
-// mensagens
-async function getMessages(){
-  const res = await fetch(
-    `https://www.googleapis.com/youtube/v3/liveChat/messages?liveChatId=${liveChatId}&part=snippet,authorDetails&key=${API_KEY}&pageToken=${nextPageToken}`
-  );
-
-  const data = await res.json();
-  nextPageToken = data.nextPageToken;
-
-  data.items.forEach(msg=>{
-    const nome = msg.authorDetails.displayName;
-    const texto = msg.snippet.displayMessage;
-
-    addMessage(nome, texto);
-  });
-}
-
-// mostrar chat
-function addMessage(nome, texto){
+function addMessage(nome, texto, plataforma = "youtube"){
   const div = document.createElement("div");
   div.className = "msg";
-  div.innerHTML = `<b>${nome}:</b> ${texto}`;
+
+  let tag = "";
+  if(plataforma === "youtube") tag = "🟥 YT";
+  if(plataforma === "twitch") tag = "🟪 TW";
+
+  div.innerHTML = `<b>${tag} ${nome}:</b> ${texto}`;
 
   const chat = document.getElementById("chat");
   chat.appendChild(div);
@@ -176,21 +133,91 @@ function addMessage(nome, texto){
   }, 50000);
 }
 
-// iniciar
-async function iniciarChat(){
-  const videoId = await getLiveVideoId();
+//////////////////////////////////////////////////
+// 🔴 YOUTUBE CHAT
+//////////////////////////////////////////////////
 
+const API_KEY = "AIzaSyDoDTtN60hLIitjBW1YNxIQmuZW5YfflCg";
+const CHANNEL_ID = "UC4kUqHcYkRz6t8XHk0v1xVw";
+
+let liveChatId = null;
+let nextPageToken = "";
+
+async function getLiveVideoId(){
+  const res = await fetch(
+    `https://www.googleapis.com/youtube/v3/search?part=snippet&channelId=${CHANNEL_ID}&eventType=live&type=video&key=${API_KEY}`
+  );
+  const data = await res.json();
+  return data.items[0]?.id?.videoId;
+}
+
+async function getChatId(videoId){
+  const res = await fetch(
+    `https://www.googleapis.com/youtube/v3/videos?part=liveStreamingDetails&id=${videoId}&key=${API_KEY}`
+  );
+  const data = await res.json();
+  return data.items[0].liveStreamingDetails.activeLiveChatId;
+}
+
+async function getMessages(){
+  const res = await fetch(
+    `https://www.googleapis.com/youtube/v3/liveChat/messages?liveChatId=${liveChatId}&part=snippet,authorDetails&key=${API_KEY}&pageToken=${nextPageToken}`
+  );
+
+  const data = await res.json();
+  nextPageToken = data.nextPageToken;
+
+  data.items.forEach(msg=>{
+    const nome = msg.authorDetails.displayName;
+    const texto = msg.snippet.displayMessage;
+
+    addMessage(nome, texto, "youtube");
+  });
+}
+
+async function iniciarYT(){
+  const videoId = await getLiveVideoId();
   if(!videoId){
-    console.log("Sem live");
+    console.log("Sem live no YouTube");
     return;
   }
 
   liveChatId = await getChatId(videoId);
-
   setInterval(getMessages, 3000);
 }
 
-iniciarChat();
+//////////////////////////////////////////////////
+// 🟪 TWITCH CHAT
+//////////////////////////////////////////////////
+
+const twitchChannel = "youtubekaua"; // ⚠️ MUDA AQUI
+
+const socket = new WebSocket("wss://irc-ws.chat.twitch.tv:443");
+
+socket.onopen = () => {
+  socket.send("PASS SCHMOOPIIE");
+  socket.send("NICK justinfan" + Math.floor(Math.random()*100000));
+  socket.send(`JOIN #${twitchChannel}`);
+};
+
+socket.onmessage = (event) => {
+  const msg = event.data;
+
+  if(msg.includes("PRIVMSG")){
+    try{
+      const nome = msg.split("!")[0].substring(1);
+      const texto = msg.split("PRIVMSG")[1].split(":")[1];
+
+      addMessage(nome, texto, "twitch");
+    }catch(e){}
+  }
+};
+
+//////////////////////////////////////////////////
+// 🚀 INICIAR TUDO
+//////////////////////////////////////////////////
+
+iniciarYT();
 
 </script>
 
