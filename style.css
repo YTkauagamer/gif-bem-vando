@@ -32,7 +32,7 @@ body {
 }
 
 .msg {
-  background: rgba(0, 0, 0, 0.65);
+  background: rgba(0, 0, 0, 0.90);
   margin: 6px 0;
   padding: 14px 18px;
   border-radius: 8px;
@@ -48,7 +48,7 @@ body {
   box-shadow: 0 10px 20px rgba(0,0,0,0.5);
 
   /* animação lateral */
-  animation: slideRightFade 0.35s ease;
+  animation: slideLeftFade 0.35s ease;
 }
 
 @keyframes slideFade {
