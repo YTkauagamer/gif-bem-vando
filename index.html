@@ -114,8 +114,8 @@ function addMessage(nome, texto, plataforma = "youtube"){
   div.className = "msg";
 
   let tag = "";
-  if(plataforma === "youtube") tag = "🟥 YT";
-  if(plataforma === "twitch") tag = "🟪 TW";
+  if(plataforma === "youtube") tag = "✔️ [  ▶︎ ] YouTube";
+  if(plataforma === "twitch") tag = "☑️ TWITCH";
 
   div.innerHTML = `<b>${tag} ${nome}:</b> ${texto}`;
 
