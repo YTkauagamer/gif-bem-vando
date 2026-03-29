@@ -25,6 +25,8 @@ body {
   right: 400px;
   bottom: 400px;
   width: 800px;
+  height: 600px;
+  overflow: hidden;
   display: flex;
   flex-direction: column;
   align-items: flex-end;
