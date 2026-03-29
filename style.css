@@ -4,8 +4,7 @@ body {
   overflow: hidden;
 }
 
-
-/* 🎬 GIF (OVERLAY) */
+/* 🎬 GIF */
 #imagem {
   position: fixed;
   top: 50%;
@@ -18,48 +17,41 @@ body {
   transition: opacity 0.7s ease, transform 0.7s ease;
 }
 
-
-/* 💬 CHAT */
+/* 💬 CHAT (lado direito) */
 #chat {
   position: fixed;
-  right: 400px;
-  bottom: 400px;
-  width: 800px;
-  height: 600px;
-  overflow: hidden;
+  right: 20px;
+  bottom: 20px;
+  width: 350px;
   display: flex;
   flex-direction: column;
   align-items: flex-end;
   font-family: Arial;
 }
 
+/* 💬 MENSAGEM */
 .msg {
-  background: rgba(20,20,20,0.9);
-  margin: 10px 0;
-  padding: 12px;
-  border-radius: 12px;
+  max-width: 100%;
+  margin: 6px 0;
+  padding: 10px 14px;
+  border-radius: 6px;
+  background: rgba(0, 0, 0, 0.75);
   color: #fff;
-  font-size: 20px;
+  font-size: 16px;
   line-height: 1.4;
   backdrop-filter: blur(6px);
-
-  /* borda lateral padrão stream */
-  border-left: 4px solid #00ffcc;
-
-  /* sombra leve */
-  box-shadow: 0 10px 20px rgba(0,0,0,0.5);
-
-  /* animação lateral */
-  animation: slideLeftFade 0.35s ease;
+  box-shadow: 0 2px 10px rgba(0,0,0,0.5);
+  animation: slideIn 0.3s ease;
 }
 
-@keyframes slideFade {
+/* animação estilo streamlabs */
+@keyframes slideIn {
   from {
     opacity: 0;
-    transform: translateY(15px);
+    transform: translateX(40px);
   }
   to {
     opacity: 1;
-    transform: translateY(0);
+    transform: translateX(0);
   }
 }
