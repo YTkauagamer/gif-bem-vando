@@ -105,46 +105,20 @@ firebase.database().ref("overlay").on("value", function(snapshot){
   }
 });
 
-//////////////////////////////////////////////////
-// 💬 FUNÇÃO GLOBAL DE CHAT (AGORA COM PLATAFORMA)
-//////////////////////////////////////////////////
+///<script>
+// 🔴 YOUTUBE CHAT (SISTEMA HÍBRIDO PERFEITO)
 
-function addMessage(nome, texto, plataforma = "youtube"){
-  const div = document.createElement("div");
-  div.className = "msg";
-
-  let tag = "";
-  if(plataforma === "youtube") tag = "✔️ [  ▶︎ ] YouTube";
-  if(plataforma === "twitch") tag = "☑️ TWITCH";
-
-  div.innerHTML = `<b>${tag} ${nome}:</b> ${texto}`;
-
-  const chat = document.getElementById("chat");
-  chat.appendChild(div);
-
-  if(chat.children.length > 8){
-    chat.removeChild(chat.firstChild);
-  }
-
-  setTimeout(() => {
-    if(div.parentNode){
-      div.remove();
-    }
-  }, 50000);
-}
-
-// 🔴 YOUTUBE CHAT (AUTO + RETRY)
 const API_KEY = "AIzaSyDoDTtN60hLIitjBW1YNxIQmuZW5YfflCg";
 const CHANNEL_ID = "UC4kUqHcYkRz6t8XHk0v1xVw";
 
+// 🔥 SUA LIVE (FUNCIONA NA HORA)
+const VIDEO_ID_FIXO = "CJrKRyDtKB8";
+
 let liveChatId = null;
 let nextPageToken = "";
-let buscandoLive = false;
 
+// tenta automático, se falhar usa fixo
 async function buscarLive(){
-  if(buscandoLive) return;
-  buscandoLive = true;
-
   try{
     const res = await fetch(
       `https://www.googleapis.com/youtube/v3/search?part=snippet&channelId=${CHANNEL_ID}&eventType=live&type=video&key=${API_KEY}`
@@ -154,20 +128,17 @@ async function buscarLive(){
 
     if(data.items && data.items.length > 0){
       const videoId = data.items[0].id.videoId;
-      console.log("🎥 Live encontrada:", videoId);
-
-      await iniciarChat(videoId);
+      console.log("🎥 Live detectada automaticamente:", videoId);
+      iniciarChat(videoId);
     } else {
-      console.log("❌ Nenhuma live... tentando novamente");
-      setTimeout(buscarLive, 10000);
+      console.log("⚠️ API falhou → usando ID fixo");
+      iniciarChat(VIDEO_ID_FIXO);
     }
 
   }catch(e){
-    console.log("⚠️ erro ao buscar live, retry...");
-    setTimeout(buscarLive, 10000);
+    console.log("⚠️ erro API → fallback fixo");
+    iniciarChat(VIDEO_ID_FIXO);
   }
-
-  buscandoLive = false;
 }
 
 async function iniciarChat(videoId){
@@ -179,19 +150,19 @@ async function iniciarChat(videoId){
     const data = await res.json();
 
     if(!data.items || !data.items[0].liveStreamingDetails){
-      console.log("⚠️ chat ainda não disponível...");
-      setTimeout(buscarLive, 10000);
+      console.log("⏳ chat ainda não disponível...");
+      setTimeout(buscarLive, 8000);
       return;
     }
 
     liveChatId = data.items[0].liveStreamingDetails.activeLiveChatId;
-    console.log("💬 Chat conectado!");
+    console.log("💬 CHAT CONECTADO!");
 
     loopMensagens();
 
   }catch(e){
-    console.log("⚠️ erro ao iniciar chat...");
-    setTimeout(buscarLive, 10000);
+    console.log("🔄 erro → tentando de novo...");
+    setTimeout(buscarLive, 8000);
   }
 }
 
@@ -207,29 +178,117 @@ async function loopMensagens(){
 
     if(data.items){
       data.items.forEach(msg=>{
-        const nome = msg.authorDetails.displayName;
-        const texto = msg.snippet.displayMessage;
-
-        addMessage(nome, texto, "youtube");
+        addMessage(
+          msg.authorDetails.displayName,
+          msg.snippet.displayMessage,
+          "youtube"
+        );
       });
     }
 
     setTimeout(loopMensagens, 3000);
 
   }catch(e){
-    console.log("⚠️ erro no chat, reconectando...");
-    setTimeout(buscarLive, 10000);
+    console.log("🔁 reconectando...");
+    setTimeout(buscarLive, 8000);
   }
 }
 
-// 🚀 iniciar sistema
+// 🚀 iniciar
 buscarLive();
+</script><script>
+// 🔴 YOUTUBE CHAT (SISTEMA HÍBRIDO PERFEITO)
 
-//////////////////////////////////////////////////
-// 🚀 INICIAR TUDO
-//////////////////////////////////////////////////
+const API_KEY = "AIzaSyDoDTtN60hLIitjBW1YNxIQmuZW5YfflCg";
+const CHANNEL_ID = "UC4kUqHcYkRz6t8XHk0v1xVw";
 
-iniciarYT();
+// 🔥 SUA LIVE (FUNCIONA NA HORA)
+const VIDEO_ID_FIXO = "CJrKRyDtKB8";
+
+let liveChatId = null;
+let nextPageToken = "";
+
+// tenta automático, se falhar usa fixo
+async function buscarLive(){
+  try{
+    const res = await fetch(
+      `https://www.googleapis.com/youtube/v3/search?part=snippet&channelId=${CHANNEL_ID}&eventType=live&type=video&key=${API_KEY}`
+    );
+
+    const data = await res.json();
+
+    if(data.items && data.items.length > 0){
+      const videoId = data.items[0].id.videoId;
+      console.log("🎥 Live detectada automaticamente:", videoId);
+      iniciarChat(videoId);
+    } else {
+      console.log("⚠️ API falhou → usando ID fixo");
+      iniciarChat(VIDEO_ID_FIXO);
+    }
+
+  }catch(e){
+    console.log("⚠️ erro API → fallback fixo");
+    iniciarChat(VIDEO_ID_FIXO);
+  }
+}
+
+async function iniciarChat(videoId){
+  try{
+    const res = await fetch(
+      `https://www.googleapis.com/youtube/v3/videos?part=liveStreamingDetails&id=${videoId}&key=${API_KEY}`
+    );
+
+    const data = await res.json();
+
+    if(!data.items || !data.items[0].liveStreamingDetails){
+      console.log("⏳ chat ainda não disponível...");
+      setTimeout(buscarLive, 8000);
+      return;
+    }
+
+    liveChatId = data.items[0].liveStreamingDetails.activeLiveChatId;
+    console.log("💬 CHAT CONECTADO!");
+
+    loopMensagens();
+
+  }catch(e){
+    console.log("🔄 erro → tentando de novo...");
+    setTimeout(buscarLive, 8000);
+  }
+}
+
+async function loopMensagens(){
+  try{
+    const res = await fetch(
+      `https://www.googleapis.com/youtube/v3/liveChat/messages?liveChatId=${liveChatId}&part=snippet,authorDetails&key=${API_KEY}&pageToken=${nextPageToken}`
+    );
+
+    const data = await res.json();
+
+    nextPageToken = data.nextPageToken;
+
+    if(data.items){
+      data.items.forEach(msg=>{
+        addMessage(
+          msg.authorDetails.displayName,
+          msg.snippet.displayMessage,
+          "youtube"
+        );
+      });
+    }
+
+    setTimeout(loopMensagens, 3000);
+
+  }catch(e){
+    console.log("🔁 reconectando...");
+    setTimeout(buscarLive, 8000);
+  }
+}
+
+// 🚀 iniciar
+buscarLive();
+</script>  }
+}
 
 </script>
 
