@@ -133,85 +133,97 @@ function addMessage(nome, texto, plataforma = "youtube"){
   }, 50000);
 }
 
-//////////////////////////////////////////////////
-// 🔴 YOUTUBE CHAT
-//////////////////////////////////////////////////
-
+// 🔴 YOUTUBE CHAT (AUTO + RETRY)
 const API_KEY = "AIzaSyDoDTtN60hLIitjBW1YNxIQmuZW5YfflCg";
 const CHANNEL_ID = "UC4kUqHcYkRz6t8XHk0v1xVw";
 
 let liveChatId = null;
 let nextPageToken = "";
+let buscandoLive = false;
 
-async function getLiveVideoId(){
-  const res = await fetch(
-    `https://www.googleapis.com/youtube/v3/search?part=snippet&channelId=${CHANNEL_ID}&eventType=live&type=video&key=${API_KEY}`
-  );
-  const data = await res.json();
-  return data.items[0]?.id?.videoId;
-}
+async function buscarLive(){
+  if(buscandoLive) return;
+  buscandoLive = true;
 
-async function getChatId(videoId){
-  const res = await fetch(
-    `https://www.googleapis.com/youtube/v3/videos?part=liveStreamingDetails&id=${videoId}&key=${API_KEY}`
-  );
-  const data = await res.json();
-  return data.items[0].liveStreamingDetails.activeLiveChatId;
-}
+  try{
+    const res = await fetch(
+      `https://www.googleapis.com/youtube/v3/search?part=snippet&channelId=${CHANNEL_ID}&eventType=live&type=video&key=${API_KEY}`
+    );
 
-async function getMessages(){
-  const res = await fetch(
-    `https://www.googleapis.com/youtube/v3/liveChat/messages?liveChatId=${liveChatId}&part=snippet,authorDetails&key=${API_KEY}&pageToken=${nextPageToken}`
-  );
+    const data = await res.json();
 
-  const data = await res.json();
-  nextPageToken = data.nextPageToken;
+    if(data.items && data.items.length > 0){
+      const videoId = data.items[0].id.videoId;
+      console.log("🎥 Live encontrada:", videoId);
 
-  data.items.forEach(msg=>{
-    const nome = msg.authorDetails.displayName;
-    const texto = msg.snippet.displayMessage;
+      await iniciarChat(videoId);
+    } else {
+      console.log("❌ Nenhuma live... tentando novamente");
+      setTimeout(buscarLive, 10000);
+    }
 
-    addMessage(nome, texto, "youtube");
-  });
-}
-
-async function iniciarYT(){
-  const videoId = await getLiveVideoId();
-  if(!videoId){
-    console.log("Sem live no YouTube");
-    return;
+  }catch(e){
+    console.log("⚠️ erro ao buscar live, retry...");
+    setTimeout(buscarLive, 10000);
   }
 
-  liveChatId = await getChatId(videoId);
-  setInterval(getMessages, 3000);
+  buscandoLive = false;
 }
 
-//////////////////////////////////////////////////
-// 🟪 TWITCH CHAT
-//////////////////////////////////////////////////
+async function iniciarChat(videoId){
+  try{
+    const res = await fetch(
+      `https://www.googleapis.com/youtube/v3/videos?part=liveStreamingDetails&id=${videoId}&key=${API_KEY}`
+    );
 
-const twitchChannel = "youtubekaua"; // ⚠️ MUDA AQUI
+    const data = await res.json();
 
-const socket = new WebSocket("wss://irc-ws.chat.twitch.tv:443");
+    if(!data.items || !data.items[0].liveStreamingDetails){
+      console.log("⚠️ chat ainda não disponível...");
+      setTimeout(buscarLive, 10000);
+      return;
+    }
 
-socket.onopen = () => {
-  socket.send("PASS SCHMOOPIIE");
-  socket.send("NICK justinfan" + Math.floor(Math.random()*100000));
-  socket.send(`JOIN #${twitchChannel}`);
-};
+    liveChatId = data.items[0].liveStreamingDetails.activeLiveChatId;
+    console.log("💬 Chat conectado!");
 
-socket.onmessage = (event) => {
-  const msg = event.data;
+    loopMensagens();
 
-  if(msg.includes("PRIVMSG")){
-    try{
-      const nome = msg.split("!")[0].substring(1);
-      const texto = msg.split("PRIVMSG")[1].split(":")[1];
-
-      addMessage(nome, texto, "twitch");
-    }catch(e){}
+  }catch(e){
+    console.log("⚠️ erro ao iniciar chat...");
+    setTimeout(buscarLive, 10000);
   }
-};
+}
+
+async function loopMensagens(){
+  try{
+    const res = await fetch(
+      `https://www.googleapis.com/youtube/v3/liveChat/messages?liveChatId=${liveChatId}&part=snippet,authorDetails&key=${API_KEY}&pageToken=${nextPageToken}`
+    );
+
+    const data = await res.json();
+
+    nextPageToken = data.nextPageToken;
+
+    if(data.items){
+      data.items.forEach(msg=>{
+        const nome = msg.authorDetails.displayName;
+        const texto = msg.snippet.displayMessage;
+
+        addMessage(nome, texto, "youtube");
+      });
+    }
+
+    setTimeout(loopMensagens, 3000);
+
+  }catch(e){
+    console.log("⚠️ erro no chat, reconectando...");
+    setTimeout(buscarLive, 10000);
+  }
+}
+
+// 🚀 iniciar sistema
+buscarLive();
 
 //////////////////////////////////////////////////
 // 🚀 INICIAR TUDO
