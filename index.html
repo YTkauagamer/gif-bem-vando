@@ -2,7 +2,7 @@
 <html>
 <head>
 <meta charset="UTF-8">
-<title>Overlay PRO</title>
+<title>Overlay</title>
 
 <style>
 body{
@@ -21,7 +21,7 @@ body{
   height: 600px;
   object-fit: contain;
   opacity: 0;
-  transition: 0.7s;
+  transition: opacity 0.7s ease, transform 0.7s ease;
 }
 
 /* 💬 CHAT */
@@ -29,35 +29,61 @@ body{
   position: fixed;
   right: 20px;
   bottom: 20px;
-  width: 450px;
+  width: 500px;
   display: flex;
   flex-direction: column;
   align-items: flex-end;
   font-family: Arial;
 }
 
+/* 💎 MENSAGEM ESTILO STREAMLABS */
 .msg{
   background: rgba(0,0,0,0.35);
   backdrop-filter: blur(6px);
+
   margin: 10px 0;
   padding: 10px 14px;
   border-radius: 12px;
-  font-size: 20px;
+
+  font-size: 22px;
+  font-weight: bold;
   color: white;
+
   text-align: right;
-  animation: slide 0.4s;
+
+  box-shadow: 0 10px 25px rgba(0,0,0,0.6);
+
+  animation: slideRobusto 0.45s cubic-bezier(.22,1.2,.36,1);
 }
 
-@keyframes slide{
-  from{opacity:0; transform: translateX(50px);}
-  to{opacity:1; transform: translateX(0);}
+@keyframes slideRobusto{
+  0%{
+    opacity: 0;
+    transform: translateX(80px) scale(0.95);
+  }
+  60%{
+    opacity: 1;
+    transform: translateX(-5px) scale(1.02);
+  }
+  100%{
+    transform: translateX(0) scale(1);
+  }
+}
+
+.nome{
+  font-weight: bold;
+  margin-right: 6px;
+}
+
+.texto{
+  color: #fff;
 }
 </style>
 </head>
 <body>
 
-<img id="imagem">
 <div id="chat"></div>
+<img id="imagem">
 
 <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
 <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
@@ -65,7 +91,7 @@ body{
 <script>
 // ================= FIREBASE =================
 var firebaseConfig = {
-  apiKey: "SUA_FIREBASE_KEY",
+  apiKey: "AIzaSyACKzi7eHGLRRhYyg1W6Zh7jWszkdrHDAw",
   databaseURL: "https://gif-overlay-65024-default-rtdb.firebaseio.com"
 };
 
@@ -94,14 +120,52 @@ firebase.database().ref("overlay").on("value", function(snapshot){
   }
 });
 
+// ================= CORES =================
+function getRandomColor(){
+  const cores = [
+    "#ff4d4d", "#4dd2ff", "#ffd24d",
+    "#4dff88", "#ff66cc", "#66a3ff",
+    "#ff944d", "#00ffcc"
+  ];
+  return cores[Math.floor(Math.random() * cores.length)];
+}
+
 // ================= CHAT =================
-function addMessage(nome, texto, plataforma="youtube"){
+function addMessage(nome, texto, plataforma = "youtube", tipo = {}){
   const div = document.createElement("div");
   div.className = "msg";
 
-  let tag = plataforma === "youtube" ? "▶" : "🟪";
+  let badge = "";
+  let nomeColor = getRandomColor();
 
-  div.innerHTML = `<b>${tag} ${nome}:</b> ${texto}`;
+  if(plataforma === "youtube"){
+    badge = "▶";
+
+    if(tipo.owner){
+      badge += " 👑";
+      nomeColor = "#ffd700";
+    }
+    else if(tipo.mod){
+      badge += " 🛡️";
+      nomeColor = "#00ffcc";
+    }
+    else if(tipo.member){
+      badge += " ⭐";
+      nomeColor = "#ff66cc";
+    }
+  }
+
+  if(plataforma === "twitch"){
+    badge = "🟪";
+    nomeColor = "#9146FF";
+  }
+
+  div.innerHTML = `
+    <span class="nome" style="color:${nomeColor}">
+      ${badge} ${nome}:
+    </span>
+    <span class="texto">${texto}</span>
+  `;
 
   const chat = document.getElementById("chat");
   chat.appendChild(div);
@@ -110,45 +174,39 @@ function addMessage(nome, texto, plataforma="youtube"){
     chat.removeChild(chat.firstChild);
   }
 
-  setTimeout(()=>{
+  setTimeout(() => {
     if(div.parentNode){
       div.remove();
     }
-  },30000);
+  }, 50000);
 }
 
-// ================= YOUTUBE (PAINEL) =================
+// ================= YOUTUBE API =================
 const API_KEY = "AIzaSyDoDTtN60hLIitjBW1YNxIQmuZW5YfflCg";
 
 let liveChatId = null;
 let nextPageToken = "";
 
-// 🔥 pega ID vindo do painel
-firebase.database().ref("chatYoutube").on("value", async (snap)=>{
-  const data = snap.val();
+firebase.database().ref("chatYoutube").on("value", async function(snapshot){
+  const data = snapshot.val();
   if(!data || !data.videoId) return;
 
-  console.log("🎥 usando live:", data.videoId);
+  const videoId = data.videoId;
 
-  try{
-    const res = await fetch(
-      `https://www.googleapis.com/youtube/v3/videos?part=liveStreamingDetails&id=${data.videoId}&key=${API_KEY}`
-    );
+  const res = await fetch(
+    `https://www.googleapis.com/youtube/v3/videos?part=liveStreamingDetails&id=${videoId}&key=${API_KEY}`
+  );
 
-    const json = await res.json();
+  const json = await res.json();
 
-    if(json.items && json.items[0]){
-      liveChatId = json.items[0].liveStreamingDetails.activeLiveChatId;
-      nextPageToken = "";
-      loopYT();
-    }
-
-  }catch(e){
-    console.log("erro yt:", e);
+  if(json.items && json.items[0]){
+    liveChatId = json.items[0].liveStreamingDetails.activeLiveChatId;
+    nextPageToken = "";
+    buscarMensagensYT();
   }
 });
 
-async function loopYT(){
+async function buscarMensagensYT(){
   if(!liveChatId) return;
 
   try{
@@ -157,6 +215,7 @@ async function loopYT(){
     );
 
     const data = await res.json();
+
     nextPageToken = data.nextPageToken || "";
 
     if(data.items){
@@ -164,16 +223,21 @@ async function loopYT(){
         addMessage(
           msg.authorDetails.displayName,
           msg.snippet.displayMessage,
-          "youtube"
+          "youtube",
+          {
+            owner: msg.authorDetails.isChatOwner,
+            mod: msg.authorDetails.isChatModerator,
+            member: msg.authorDetails.isChatSponsor
+          }
         );
       });
     }
 
   }catch(e){
-    console.log("erro loop yt");
+    console.log("Erro YT:", e);
   }
 
-  setTimeout(loopYT, 3000);
+  setTimeout(buscarMensagensYT, 3000);
 }
 
 // ================= TWITCH =================
