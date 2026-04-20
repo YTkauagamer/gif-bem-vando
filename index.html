@@ -21,10 +21,10 @@ body{
   height: 600px;
   object-fit: contain;
   opacity: 0;
-  transition: 0.7s;
+  transition: opacity 0.7s ease, transform 0.7s ease;
 }
 
-/* 💬 TWITCH CHAT (CUSTOM) */
+/* 💬 TWITCH CHAT */
 #chat{
   position: fixed;
   left: 20px;
@@ -42,7 +42,7 @@ body{
   font-size: 14px;
 }
 
-/* 🔴 YOUTUBE CHAT (iframe) */
+/* 🔴 YOUTUBE CHAT */
 #ytchat{
   position: fixed;
   right: 20px;
@@ -59,9 +59,7 @@ body{
 <div id="chat"></div>
 
 <!-- YOUTUBE -->
-<iframe id="ytchat"
-src="https://www.youtube.com/live_chat?v=CJrKRyDtKB8&embed_domain=ytkauagamer.github.io">
-</iframe>
+<iframe id="ytchat"></iframe>
 
 <!-- GIF -->
 <img id="imagem">
@@ -70,7 +68,7 @@ src="https://www.youtube.com/live_chat?v=CJrKRyDtKB8&embed_domain=ytkauagamer.gi
 <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
 
 <script>
-// 🔥 FIREBASE
+// ================= FIREBASE =================
 var firebaseConfig = {
   apiKey: "AIzaSyACKzi7eHGLRRhYyg1W6Zh7jWszkdrHDAw",
   databaseURL: "https://gif-overlay-65024-default-rtdb.firebaseio.com"
@@ -78,16 +76,25 @@ var firebaseConfig = {
 
 firebase.initializeApp(firebaseConfig);
 
+// 🎬 GIF
 var imagem = document.getElementById("imagem");
 
 firebase.database().ref("overlay").on("value", function(snapshot){
   var data = snapshot.val();
+
   if(data && data.imagem){
     imagem.src = data.imagem;
+
+    imagem.style.opacity = "0";
+    imagem.style.transform = "translate(-50%, -50%) scale(0.9)";
+    imagem.offsetHeight;
+
     imagem.style.opacity = "1";
+    imagem.style.transform = "translate(-50%, -50%) scale(1)";
 
     setTimeout(()=>{
       imagem.style.opacity = "0";
+      imagem.style.transform = "translate(-50%, -50%) scale(1.1)";
     },5000);
   }
 });
@@ -120,9 +127,21 @@ socket.onmessage = (event) => {
   if(msg.includes("PRIVMSG")){
     const nome = msg.split("!")[0].substring(1);
     const texto = msg.split("PRIVMSG")[1].split(":")[1];
+
     addMessage(nome, texto);
   }
 };
+
+// 🔴 YOUTUBE CHAT (CONTROLADO PELO PAINEL)
+firebase.database().ref("chatYoutube").on("value", function(snapshot){
+  const data = snapshot.val();
+
+  if(data && data.videoId){
+    const iframe = document.getElementById("ytchat");
+
+    iframe.src = `https://www.youtube.com/live_chat?v=${data.videoId}&embed_domain=ytkauagamer.github.io`;
+  }
+});
 </script>
 
 </body>
