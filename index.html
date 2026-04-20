@@ -2,7 +2,7 @@
 <html>
 <head>
 <meta charset="UTF-8">
-<title>Overlay</title>
+<title>Overlay PRO</title>
 
 <style>
 body{
@@ -21,69 +21,72 @@ body{
   height: 600px;
   object-fit: contain;
   opacity: 0;
-  transition: opacity 0.7s ease, transform 0.7s ease;
+  transition: 0.7s;
 }
 
-/* 💬 CHAT */
+/* 💬 TWITCH CHAT */
 #chat{
   position: fixed;
   right: 20px;
   bottom: 20px;
-  width: 500px;
+  width: 400px;
   display: flex;
   flex-direction: column;
   align-items: flex-end;
   font-family: Arial;
 }
 
-/* 💎 MENSAGEM ESTILO STREAMLABS */
+/* 💎 MENSAGENS */
 .msg{
   background: rgba(0,0,0,0.35);
   backdrop-filter: blur(6px);
-
   margin: 10px 0;
   padding: 10px 14px;
   border-radius: 12px;
-
-  font-size: 22px;
-  font-weight: bold;
+  font-size: 20px;
   color: white;
-
   text-align: right;
-
-  box-shadow: 0 10px 25px rgba(0,0,0,0.6);
-
-  animation: slideRobusto 0.45s cubic-bezier(.22,1.2,.36,1);
+  animation: slide 0.4s;
 }
 
-@keyframes slideRobusto{
-  0%{
-    opacity: 0;
-    transform: translateX(80px) scale(0.95);
+@keyframes slide{
+  from{
+    opacity:0;
+    transform: translateX(50px);
   }
-  60%{
-    opacity: 1;
-    transform: translateX(-5px) scale(1.02);
-  }
-  100%{
-    transform: translateX(0) scale(1);
+  to{
+    opacity:1;
+    transform: translateX(0);
   }
 }
 
-.nome{
-  font-weight: bold;
-  margin-right: 6px;
-}
-
-.texto{
-  color: #fff;
+/* 🔴 YOUTUBE CHAT (iframe) */
+#ytchat{
+  position: fixed;
+  left: 20px;
+  bottom: 20px;
+  width: 400px;
+  height: 600px;
+  border: none;
+  opacity: 0.85;
+  border-radius: 10px;
+  overflow: hidden;
 }
 </style>
 </head>
 <body>
 
-<div id="chat"></div>
+<!-- 🎬 GIF -->
 <img id="imagem">
+
+<!-- 💬 TWITCH -->
+<div id="chat"></div>
+
+<!-- 🔴 YOUTUBE (PRO) -->
+<iframe 
+  id="ytchat"
+  src="https://www.youtube.com/live_chat?v=CJrKRyDtKB8&embed_domain=ytkauagamer.github.io">
+</iframe>
 
 <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
 <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
@@ -120,176 +123,6 @@ firebase.database().ref("overlay").on("value", function(snapshot){
   }
 });
 
-// ================= CORES =================
-function getRandomColor(){
-  const cores = [
-    "#ff4d4d", "#4dd2ff", "#ffd24d",
-    "#4dff88", "#ff66cc", "#66a3ff",
-    "#ff944d", "#00ffcc"
-  ];
-  return cores[Math.floor(Math.random() * cores.length)];
-}
-
-// ================= CHAT =================
-function addMessage(nome, texto, plataforma = "youtube", tipo = {}){
-  const div = document.createElement("div");
-  div.className = "msg";
-
-  let badge = "";
-  let nomeColor = getRandomColor();
-
-  if(plataforma === "youtube"){
-    badge = "▶";
-
-    if(tipo.owner){
-      badge += " 👑";
-      nomeColor = "#ffd700";
-    }
-    else if(tipo.mod){
-      badge += " 🛡️";
-      nomeColor = "#00ffcc";
-    }
-    else if(tipo.member){
-      badge += " ⭐";
-      nomeColor = "#ff66cc";
-    }
-  }
-
-  if(plataforma === "twitch"){
-    badge = "🟪";
-    nomeColor = "#9146FF";
-  }
-
-  div.innerHTML = `
-    <span class="nome" style="color:${nomeColor}">
-      ${badge} ${nome}:
-    </span>
-    <span class="texto">${texto}</span>
-  `;
-
-  const chat = document.getElementById("chat");
-  chat.appendChild(div);
-
-  if(chat.children.length > 8){
-    chat.removeChild(chat.firstChild);
-  }
-
-  setTimeout(() => {
-    if(div.parentNode){
-      div.remove();
-    }
-  }, 50000);
-}
-
-// ================= YOUTUBE AUTO + PAINEL =================
-
-const API_KEY = "AIzaSyDoDTtN60hLIitjBW1YNxIQmuZW5YfflCg";
-const CHANNEL_ID = "UC4kUqHcYkRz6t8XHk0v1xVw";
-
-let liveChatId = null;
-let nextPageToken = "";
-let videoAtual = null;
-
-// 🔥 painel (prioridade)
-firebase.database().ref("chatYoutube").on("value", (snapshot) => {
-  const data = snapshot.val();
-  if(data && data.videoId){
-    console.log("📥 painel:", data.videoId);
-    iniciarYT(data.videoId);
-  }
-});
-
-// 🔄 auto detectar live
-async function detectarLive(){
-  try{
-    const res = await fetch(
-      `https://www.googleapis.com/youtube/v3/search?part=snippet&channelId=${CHANNEL_ID}&eventType=live&type=video&key=${API_KEY}`
-    );
-
-    const data = await res.json();
-
-    if(data.items && data.items.length > 0){
-      const videoId = data.items[0].id.videoId;
-
-      if(videoId !== videoAtual){
-        console.log("🎥 nova live:", videoId);
-        iniciarYT(videoId);
-      }
-    }
-
-  }catch(e){
-    console.log("erro detectando live");
-  }
-
-  setTimeout(detectarLive, 10000);
-}
-
-async function iniciarYT(videoId){
-  try{
-    videoAtual = videoId;
-
-    const res = await fetch(
-      `https://www.googleapis.com/youtube/v3/videos?part=liveStreamingDetails&id=${videoId}&key=${API_KEY}`
-    );
-
-    const data = await res.json();
-
-    if(!data.items || !data.items[0].liveStreamingDetails){
-      console.log("⏳ aguardando chat...");
-      setTimeout(() => iniciarYT(videoId), 8000);
-      return;
-    }
-
-    liveChatId = data.items[0].liveStreamingDetails.activeLiveChatId;
-    nextPageToken = "";
-
-    console.log("💬 chat conectado!");
-    loopYT();
-
-  }catch(e){
-    console.log("erro iniciarYT");
-    setTimeout(() => iniciarYT(videoId), 8000);
-  }
-}
-
-async function loopYT(){
-  if(!liveChatId) return;
-
-  try{
-    const res = await fetch(
-      `https://www.googleapis.com/youtube/v3/liveChat/messages?liveChatId=${liveChatId}&part=snippet,authorDetails&key=${API_KEY}&pageToken=${nextPageToken}`
-    );
-
-    const data = await res.json();
-    nextPageToken = data.nextPageToken || "";
-
-    if(data.items){
-      data.items.forEach(msg=>{
-        addMessage(
-          msg.authorDetails.displayName,
-          msg.snippet.displayMessage,
-          "youtube",
-          {
-            owner: msg.authorDetails.isChatOwner,
-            mod: msg.authorDetails.isChatModerator,
-            member: msg.authorDetails.isChatSponsor
-          }
-        );
-      });
-    }
-
-  }catch(e){
-    console.log("🔁 reconectando...");
-    setTimeout(detectarLive, 8000);
-    return;
-  }
-
-  setTimeout(loopYT, 3000);
-}
-
-// 🚀 inicia automático
-detectarLive();
-  
 // ================= TWITCH =================
 const socket = new WebSocket("wss://irc-ws.chat.twitch.tv:443");
 
@@ -306,9 +139,28 @@ socket.onmessage = (event) => {
     const nome = msg.split("!")[0].substring(1);
     const texto = msg.split("PRIVMSG")[1].split(":")[1];
 
-    addMessage(nome, texto, "twitch");
+    addMessage(nome, texto);
   }
 };
+
+function addMessage(nome, texto){
+  const div = document.createElement("div");
+  div.className = "msg";
+  div.innerHTML = `<b>${nome}:</b> ${texto}`;
+
+  const chat = document.getElementById("chat");
+  chat.appendChild(div);
+
+  if(chat.children.length > 8){
+    chat.removeChild(chat.firstChild);
+  }
+
+  setTimeout(()=>{
+    if(div.parentNode){
+      div.remove();
+    }
+  }, 30000);
+}
 </script>
 
 </body>
