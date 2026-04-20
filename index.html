@@ -3,7 +3,6 @@
 <head>
 <meta charset="UTF-8">
 <title>Overlay</title>
-<link rel="icon" href="data:,">
 
 <style>
 body{
@@ -22,10 +21,10 @@ body{
   height: 600px;
   object-fit: contain;
   opacity: 0;
-  transition: opacity 0.7s ease, transform 0.7s ease;
+  transition: 0.7s;
 }
 
-/* 💬 CHAT */
+/* 💬 TWITCH CHAT (CUSTOM) */
 #chat{
   position: fixed;
   left: 20px;
@@ -34,90 +33,70 @@ body{
   font-family: Arial;
 }
 
-.msg {
-  background: linear-gradient(90deg, rgba(0,0,0,0.8), rgba(0,0,0,0.4));
+.msg{
+  background: rgba(0,0,0,0.8);
   margin: 6px;
   padding: 10px;
   border-radius: 10px;
   color: white;
   font-size: 14px;
-  border-left: 4px solid #00ffcc;
-  animation: slideFade 0.4s ease;
 }
 
-@keyframes slideFade {
-  from {
-    opacity: 0;
-    transform: translateY(15px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
+/* 🔴 YOUTUBE CHAT (iframe) */
+#ytchat{
+  position: fixed;
+  right: 20px;
+  bottom: 20px;
+  width: 350px;
+  height: 500px;
+  border: none;
 }
 </style>
 </head>
 <body>
 
+<!-- TWITCH -->
 <div id="chat"></div>
+
+<!-- YOUTUBE -->
+<iframe id="ytchat"
+src="https://www.youtube.com/live_chat?v=CJrKRyDtKB8&embed_domain=ytkauagamer.github.io">
+</iframe>
+
+<!-- GIF -->
 <img id="imagem">
 
 <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
 <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
 
 <script>
-// ================= FIREBASE =================
+// 🔥 FIREBASE
 var firebaseConfig = {
   apiKey: "AIzaSyACKzi7eHGLRRhYyg1W6Zh7jWszkdrHDAw",
-  authDomain: "gif-overlay-65024.firebaseapp.com",
-  databaseURL: "https://gif-overlay-65024-default-rtdb.firebaseio.com",
-  projectId: "gif-overlay-65024",
-  storageBucket: "gif-overlay-65024.appspot.com",
-  messagingSenderId: "6502465024",
-  appId: "1:6502465024:web:overlay"
+  databaseURL: "https://gif-overlay-65024-default-rtdb.firebaseio.com"
 };
 
 firebase.initializeApp(firebaseConfig);
 
 var imagem = document.getElementById("imagem");
 
-// 🎬 GIF
-function mostrarGif(url){
-  imagem.src = url;
-
-  imagem.style.opacity = "0";
-  imagem.style.transform = "translate(-50%, -50%) scale(0.9)";
-  imagem.offsetHeight;
-
-  imagem.style.opacity = "1";
-  imagem.style.transform = "translate(-50%, -50%) scale(1)";
-
-  setTimeout(() => {
-    imagem.style.opacity = "0";
-    imagem.style.transform = "translate(-50%, -50%) scale(1.1)";
-  }, 5000);
-}
-
 firebase.database().ref("overlay").on("value", function(snapshot){
   var data = snapshot.val();
   if(data && data.imagem){
-    mostrarGif(data.imagem);
+    imagem.src = data.imagem;
+    imagem.style.opacity = "1";
+
+    setTimeout(()=>{
+      imagem.style.opacity = "0";
+    },5000);
   }
 });
 
-//////////////////////////////////////////////////
-// 💬 FUNÇÃO GLOBAL CHAT
-//////////////////////////////////////////////////
-
-function addMessage(nome, texto, plataforma = "youtube"){
+// 💬 TWITCH CHAT
+function addMessage(nome, texto){
   const div = document.createElement("div");
   div.className = "msg";
-
-  let tag = "";
-  if(plataforma === "youtube") tag = "▶️ YT";
-  if(plataforma === "twitch") tag = "🟣 TW";
-
-  div.innerHTML = `<b>${tag} ${nome}:</b> ${texto}`;
+  div.innerHTML = `<b>${nome}:</b> ${texto}`;
 
   const chat = document.getElementById("chat");
   chat.appendChild(div);
@@ -125,120 +104,25 @@ function addMessage(nome, texto, plataforma = "youtube"){
   if(chat.children.length > 8){
     chat.removeChild(chat.firstChild);
   }
-
-  setTimeout(() => {
-    if(div.parentNode){
-      div.remove();
-    }
-  }, 50000);
 }
-
-//////////////////////////////////////////////////
-// 🔴 YOUTUBE CHAT (AUTO + FIXO)
-//////////////////////////////////////////////////
-
-const API_KEY = "AIzaSyDoDTtN60hLIitjBW1YNxIQmuZW5YfflCg";
-const CHANNEL_ID = "UC4kUqHcYkRz6t8XHk0v1xVw";
-const VIDEO_ID_FIXO = "CJrKRyDtKB8";
-
-let liveChatId = null;
-let nextPageToken = "";
-
-async function buscarLive(){
-  try{
-    const res = await fetch(
-      `https://www.googleapis.com/youtube/v3/search?part=snippet&channelId=${CHANNEL_ID}&eventType=live&type=video&key=${API_KEY}`
-    );
-
-    const data = await res.json();
-
-    if(data.items && data.items.length > 0){
-      iniciarChat(data.items[0].id.videoId);
-    } else {
-      iniciarChat(VIDEO_ID_FIXO);
-    }
-
-  }catch(e){
-    iniciarChat(VIDEO_ID_FIXO);
-  }
-}
-
-async function iniciarChat(videoId){
-  try{
-    const res = await fetch(
-      `https://www.googleapis.com/youtube/v3/videos?part=liveStreamingDetails&id=${videoId}&key=${API_KEY}`
-    );
-
-    const data = await res.json();
-
-    if(!data.items || !data.items[0].liveStreamingDetails){
-      setTimeout(buscarLive, 8000);
-      return;
-    }
-
-    liveChatId = data.items[0].liveStreamingDetails.activeLiveChatId;
-    loopMensagens();
-
-  }catch(e){
-    setTimeout(buscarLive, 8000);
-  }
-}
-
-async function loopMensagens(){
-  try{
-    const res = await fetch(
-      `https://www.googleapis.com/youtube/v3/liveChat/messages?liveChatId=${liveChatId}&part=snippet,authorDetails&key=${API_KEY}&pageToken=${nextPageToken}`
-    );
-
-    const data = await res.json();
-    nextPageToken = data.nextPageToken;
-
-    if(data.items){
-      data.items.forEach(msg=>{
-        addMessage(
-          msg.authorDetails.displayName,
-          msg.snippet.displayMessage,
-          "youtube"
-        );
-      });
-    }
-
-    setTimeout(loopMensagens, 3000);
-
-  }catch(e){
-    setTimeout(buscarLive, 8000);
-  }
-}
-
-buscarLive();
-
-//////////////////////////////////////////////////
-// 🟪 TWITCH CHAT
-//////////////////////////////////////////////////
-
-const twitchChannel = "youtubekaua";
 
 const socket = new WebSocket("wss://irc-ws.chat.twitch.tv:443");
 
 socket.onopen = () => {
   socket.send("PASS SCHMOOPIIE");
   socket.send("NICK justinfan" + Math.floor(Math.random()*100000));
-  socket.send(`JOIN #${twitchChannel}`);
+  socket.send("JOIN #youtubekaua");
 };
 
 socket.onmessage = (event) => {
   const msg = event.data;
 
   if(msg.includes("PRIVMSG")){
-    try{
-      const nome = msg.split("!")[0].substring(1);
-      const texto = msg.split("PRIVMSG")[1].split(":")[1];
-
-      addMessage(nome, texto, "twitch");
-    }catch(e){}
+    const nome = msg.split("!")[0].substring(1);
+    const texto = msg.split("PRIVMSG")[1].split(":")[1];
+    addMessage(nome, texto);
   }
 };
-
 </script>
 
 </body>
