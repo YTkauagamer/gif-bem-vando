@@ -36,32 +36,47 @@ body{
   font-family: Arial;
 }
 
-/* ✨ MENSAGENS TRANSPARENTES */
+/* 💎 MENSAGEM ESTILO STREAMLABS */
 .msg{
-  background: transparent;
-  margin: 8px 0;
-  padding: 4px 8px;
-  color: white;
+  background: rgba(0,0,0,0.35);
+  backdrop-filter: blur(6px);
+
+  margin: 10px 0;
+  padding: 10px 14px;
+  border-radius: 12px;
+
   font-size: 22px;
   font-weight: bold;
+  color: white;
+
   text-align: right;
 
-  text-shadow:
-    2px 2px 4px black,
-    0 0 8px black;
+  box-shadow: 0 10px 25px rgba(0,0,0,0.6);
 
-  animation: slideIn 0.3s ease;
+  animation: slideRobusto 0.45s cubic-bezier(.22,1.2,.36,1);
 }
 
-@keyframes slideIn {
-  from {
+@keyframes slideRobusto{
+  0%{
     opacity: 0;
-    transform: translateX(40px);
+    transform: translateX(80px) scale(0.95);
   }
-  to {
+  60%{
     opacity: 1;
-    transform: translateX(0);
+    transform: translateX(-5px) scale(1.02);
   }
+  100%{
+    transform: translateX(0) scale(1);
+  }
+}
+
+.nome{
+  font-weight: bold;
+  margin-right: 6px;
+}
+
+.texto{
+  color: #fff;
 }
 </style>
 </head>
@@ -105,28 +120,54 @@ firebase.database().ref("overlay").on("value", function(snapshot){
   }
 });
 
-// ================= CHAT =================
-const chat = document.getElementById("chat");
+// ================= CORES =================
+function getRandomColor(){
+  const cores = [
+    "#ff4d4d", "#4dd2ff", "#ffd24d",
+    "#4dff88", "#ff66cc", "#66a3ff",
+    "#ff944d", "#00ffcc"
+  ];
+  return cores[Math.floor(Math.random() * cores.length)];
+}
 
+// ================= CHAT =================
 function addMessage(nome, texto, plataforma = "youtube", tipo = {}){
   const div = document.createElement("div");
   div.className = "msg";
 
   let badge = "";
+  let nomeColor = getRandomColor();
 
   if(plataforma === "youtube"){
     badge = "▶";
-    if(tipo.owner) badge += " 👑";
-    if(tipo.mod) badge += " 🛡️";
-    if(tipo.member) badge += " ⭐";
+
+    if(tipo.owner){
+      badge += " 👑";
+      nomeColor = "#ffd700";
+    }
+    else if(tipo.mod){
+      badge += " 🛡️";
+      nomeColor = "#00ffcc";
+    }
+    else if(tipo.member){
+      badge += " ⭐";
+      nomeColor = "#ff66cc";
+    }
   }
 
   if(plataforma === "twitch"){
     badge = "🟪";
+    nomeColor = "#9146FF";
   }
 
-  div.innerHTML = `<b>${badge} ${nome}:</b> ${texto}`;
+  div.innerHTML = `
+    <span class="nome" style="color:${nomeColor}">
+      ${badge} ${nome}:
+    </span>
+    <span class="texto">${texto}</span>
+  `;
 
+  const chat = document.getElementById("chat");
   chat.appendChild(div);
 
   if(chat.children.length > 8){
@@ -140,33 +181,78 @@ function addMessage(nome, texto, plataforma = "youtube", tipo = {}){
   }, 50000);
 }
 
-// ================= YOUTUBE API =================
+// ================= YOUTUBE AUTO + PAINEL =================
+
 const API_KEY = "AIzaSyDoDTtN60hLIitjBW1YNxIQmuZW5YfflCg";
+const CHANNEL_ID = "UC4kUqHcYkRz6t8XHk0v1xVw";
 
 let liveChatId = null;
 let nextPageToken = "";
+let videoAtual = null;
 
-// 🔥 pega link do painel
-firebase.database().ref("chatYoutube").on("value", async function(snapshot){
+// 🔥 painel (prioridade)
+firebase.database().ref("chatYoutube").on("value", (snapshot) => {
   const data = snapshot.val();
-  if(!data || !data.videoId) return;
-
-  const videoId = data.videoId;
-
-  const res = await fetch(
-    `https://www.googleapis.com/youtube/v3/videos?part=liveStreamingDetails&id=${videoId}&key=${API_KEY}`
-  );
-
-  const json = await res.json();
-
-  if(json.items && json.items[0]){
-    liveChatId = json.items[0].liveStreamingDetails.activeLiveChatId;
-    nextPageToken = "";
-    buscarMensagensYT();
+  if(data && data.videoId){
+    console.log("📥 painel:", data.videoId);
+    iniciarYT(data.videoId);
   }
 });
 
-async function buscarMensagensYT(){
+// 🔄 auto detectar live
+async function detectarLive(){
+  try{
+    const res = await fetch(
+      `https://www.googleapis.com/youtube/v3/search?part=snippet&channelId=${CHANNEL_ID}&eventType=live&type=video&key=${API_KEY}`
+    );
+
+    const data = await res.json();
+
+    if(data.items && data.items.length > 0){
+      const videoId = data.items[0].id.videoId;
+
+      if(videoId !== videoAtual){
+        console.log("🎥 nova live:", videoId);
+        iniciarYT(videoId);
+      }
+    }
+
+  }catch(e){
+    console.log("erro detectando live");
+  }
+
+  setTimeout(detectarLive, 10000);
+}
+
+async function iniciarYT(videoId){
+  try{
+    videoAtual = videoId;
+
+    const res = await fetch(
+      `https://www.googleapis.com/youtube/v3/videos?part=liveStreamingDetails&id=${videoId}&key=${API_KEY}`
+    );
+
+    const data = await res.json();
+
+    if(!data.items || !data.items[0].liveStreamingDetails){
+      console.log("⏳ aguardando chat...");
+      setTimeout(() => iniciarYT(videoId), 8000);
+      return;
+    }
+
+    liveChatId = data.items[0].liveStreamingDetails.activeLiveChatId;
+    nextPageToken = "";
+
+    console.log("💬 chat conectado!");
+    loopYT();
+
+  }catch(e){
+    console.log("erro iniciarYT");
+    setTimeout(() => iniciarYT(videoId), 8000);
+  }
+}
+
+async function loopYT(){
   if(!liveChatId) return;
 
   try{
@@ -175,7 +261,6 @@ async function buscarMensagensYT(){
     );
 
     const data = await res.json();
-
     nextPageToken = data.nextPageToken || "";
 
     if(data.items){
@@ -194,12 +279,17 @@ async function buscarMensagensYT(){
     }
 
   }catch(e){
-    console.log("Erro YT:", e);
+    console.log("🔁 reconectando...");
+    setTimeout(detectarLive, 8000);
+    return;
   }
 
-  setTimeout(buscarMensagensYT, 3000);
+  setTimeout(loopYT, 3000);
 }
 
+// 🚀 inicia automático
+detectarLive();
+  
 // ================= TWITCH =================
 const socket = new WebSocket("wss://irc-ws.chat.twitch.tv:443");
 
