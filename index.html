@@ -181,57 +181,33 @@ function addMessage(nome, texto, plataforma = "youtube", tipo = {}){
   }, 50000);
 }
 
-<script>
 // ================= YOUTUBE API =================
 const API_KEY = "AIzaSyDoDTtN60hLIitjBW1YNxIQmuZW5YfflCg";
 
 let liveChatId = null;
 let nextPageToken = "";
-let rodando = false; // 🔥 evita loop duplicado
 
 firebase.database().ref("chatYoutube").on("value", async function(snapshot){
   const data = snapshot.val();
   if(!data || !data.videoId) return;
 
-  console.log("🎥 Live recebida:", data.videoId);
+  const videoId = data.videoId;
 
-  try{
-    const res = await fetch(
-      `https://www.googleapis.com/youtube/v3/videos?part=liveStreamingDetails&id=${data.videoId}&key=${API_KEY}`
-    );
+  const res = await fetch(
+    `https://www.googleapis.com/youtube/v3/videos?part=liveStreamingDetails&id=${videoId}&key=${API_KEY}`
+  );
 
-    const json = await res.json();
+  const json = await res.json();
 
-    if(json.error){
-      console.log("❌ ERRO API:", json.error.message);
-      return;
-    }
-
-    if(json.items && json.items[0] && json.items[0].liveStreamingDetails){
-      liveChatId = json.items[0].liveStreamingDetails.activeLiveChatId;
-      nextPageToken = "";
-
-      console.log("💬 Chat conectado:", liveChatId);
-
-      if(!rodando){
-        rodando = true;
-        loopYT();
-      }
-
-    } else {
-      console.log("⏳ Chat ainda não disponível...");
-    }
-
-  }catch(e){
-    console.log("Erro ao iniciar YT:", e);
+  if(json.items && json.items[0]){
+    liveChatId = json.items[0].liveStreamingDetails.activeLiveChatId;
+    nextPageToken = "";
+    buscarMensagensYT();
   }
 });
 
-async function loopYT(){
-  if(!liveChatId) {
-    rodando = false;
-    return;
-  }
+async function buscarMensagensYT(){
+  if(!liveChatId) return;
 
   try{
     const res = await fetch(
@@ -239,12 +215,6 @@ async function loopYT(){
     );
 
     const data = await res.json();
-
-    if(data.error){
-      console.log("❌ ERRO MENSAGENS:", data.error.message);
-      rodando = false;
-      return;
-    }
 
     nextPageToken = data.nextPageToken || "";
 
@@ -264,14 +234,12 @@ async function loopYT(){
     }
 
   }catch(e){
-    console.log("Erro loop YT:", e);
-    rodando = false;
-    return;
+    console.log("Erro YT:", e);
   }
 
-  setTimeout(loopYT, 3000);
+  setTimeout(buscarMensagensYT, 3000);
 }
-  
+
 // ================= TWITCH =================
 const socket = new WebSocket("wss://irc-ws.chat.twitch.tv:443");
 
