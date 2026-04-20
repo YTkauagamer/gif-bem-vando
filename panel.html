@@ -2,127 +2,122 @@
 <html>
 <head>
 <meta charset="UTF-8">
-<title>Overlay</title>
+<title>Painel de GIFs</title>
+<link rel="icon" href="data:,">
 
 <style>
 body{
-  margin:0;
-  background:transparent;
-  overflow:hidden;
+  background:#111;
+  font-family:Arial;
+  text-align:center;
+  color:white;
 }
 
-/* 🎬 GIF */
-#imagem{
-  position: fixed;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%) scale(1);
-  width: 800px;
-  height: 600px;
-  object-fit: contain;
-  opacity: 0;
-  transition: 0.7s;
+.botoes{
+  margin-top:30px;
+  display:flex;
+  flex-wrap:wrap;
+  justify-content:center;
+  gap:10px;
 }
 
-/* 💬 TWITCH CHAT (CUSTOM) */
-#chat{
-  position: fixed;
-  left: 20px;
-  bottom: 20px;
-  width: 320px;
-  font-family: Arial;
-}
-
-.msg{
-  background: rgba(0,0,0,0.8);
-  margin: 6px;
-  padding: 10px;
-  border-radius: 10px;
-  color: white;
-  font-size: 14px;
-}
-
-/* 🔴 YOUTUBE CHAT (iframe) */
-#ytchat{
-  position: fixed;
-  right: 20px;
-  bottom: 20px;
-  width: 350px;
-  height: 500px;
-  border: none;
+button{
+  padding:10px 15px;
+  border:none;
+  border-radius:8px;
+  cursor:pointer;
+  background:#ff0066;
+  color:white;
+  font-weight:bold;
 }
 </style>
 </head>
 <body>
 
-<!-- TWITCH -->
-<div id="chat"></div>
+<h1>Painel de GIFs 🎬</h1>
 
-<!-- YOUTUBE -->
-<iframe id="ytchat"
-src="https://www.youtube.com/live_chat?v=CJrKRyDtKB8&embed_domain=ytkauagamer.github.io">
-</iframe>
+<div class="botoes">
 
-<!-- GIF -->
-<img id="imagem">
+<button onclick="enviarImagem('https://c.tenor.com/KO80NCIjQAUAAAAd/tenor.gif')">Gatinho Rindo</button>
+
+<button onclick="enviarImagem('https://media1.tenor.com/m/agdCGfymskQAAAAC/ricagames-boxeador.gif')">Rica Games</button>
+
+<button onclick="enviarImagem('https://media1.tenor.com/m/IZDWhH292tQAAAAC/falaro.gif')">FALARO</button>
+
+<button onclick="enviarImagem('https://media.tenor.com/Pt9ZtY3HwjoAAAAj/emoji-face-orange-biting-nails.gif')">LARANJA</button>
+  
+<button onclick="enviarImagem('https://i.ibb.co/HfD8jhy4/Captura-de-tela-2026-01-28-221616.png')">Print 1</button>
+  
+<button onclick="enviarImagem('https://i.ibb.co/4nQddY5C/Opera-Instantaneo-2023-10-11-235208-scratch-mit-edu.png')">Scratch</button>
+  
+<button onclick="enviarImagem('https://i.ibb.co/hFZ2CXZr/image.png')">Ser ou Não ser</button>
+  
+<button onclick="enviarImagem('https://i.ibb.co/KcrxHG7b/IMG-20260107-WA0002.jpg')">Mário</button>
+  
+<button onclick="enviarImagem('https://i.ibb.co/zTKLJv9Y/IMG-20260107-WA0003.jpg')">Luigi</button>
+  
+<button onclick="enviarImagem('https://i.ibb.co/zWngG3Qq/IMG-20260107-WA0004.jpg')">Irmãos mário</button>
+  
+<button onclick="enviarImagem('https://i.ibb.co/rGvnJhPT/Captura-de-tela-2026-01-28-205218.png')">HEHEHE Vandão</button>
+  
+<button onclick="enviarImagem('https://i.ibb.co/KcyQ9YG3/Captura-de-tela-2026-01-12-211800.png')">Play skins</button>
+  
+<button onclick="enviarImagem('https://media1.tenor.com/m/Ow6VVFQ6ptMAAAAd/renan-neandertal.gif')">Renandertal</button>
+
+<button onclick="enviarImagem('https://media1.tenor.com/m/JeTFjIxwCigAAAAd/bolsonaro-gamer.gif')">Bolsonaro</button>
+
+<button onclick="enviarImagem('https://media1.tenor.com/m/aGSAXma4EaAAAAAd/ednaldo-pereira-banido.gif')">BANIDO</button>
+
+<button onclick="enviarImagem('https://media.tenor.com/3amxjgmRIlEAAAAi/renanplay-calvosfera.gif')">RENAN 2</button>
+
+<button onclick="enviarImagem('https://media1.tenor.com/m/jwyqJ5NPhkYAAAAC/boa-noite-shadow-o-ouri%C3%A7o.gif')">BOA noite</button>
+
+<button onclick="enviarImagem('https://media1.tenor.com/m/hzFHhdvD3lAAAAAd/gato-joia.gif')">BELEZA</button>
+
+<button onclick="enviarImagem(' https://i.ibb.co/4gShLZrm/Betty.png')">Betty</button>
+
+<button onclick="enviarImagem('https://i.ibb.co/vxK5M155/Bravo.png')">Bravo vando</button>
+
+<button onclick="enviarImagem('https://i.ibb.co/4nwMbRqQ/Captura-de-tela-2026-01-02-120621.png')">1155 et</button>
+
+<button onclick="enviarImagem(' https://i.ibb.co/gMGqMpgT/Captura-de-tela-2026-01-06-024437.png')">RICA GAMES FALARO</button>
+
+<button onclick="enviarImagem('https://i.ibb.co/ccvF8mWL/Captura-de-tela-2026-02-10-233831.png')">luangameplay</button>
+
+<button onclick="enviarImagem('https://i.ibb.co/ns8bQwZL/vandouiii.png')">vandão hehehehehe</button>
+
+<button onclick="enviarImagem('https://i.ibb.co/HDRNmFf2/julio.png')">juliokkk</button>
+
+<button onclick="enviarImagem('https://i.ibb.co/qM5PV86T/AP1-Gcz-Py9s7-WKSkp-Vc-Qkt-BUVay-Rb-Ogl7v3e7f-Ej-LQLAZE5hl-QPn-Gr-Qk-Df-Nw320-h181-s-no-gm.png')">vando cara ruim</button>
+
+<button onclick="enviarImagem('https://i.ibb.co/fzHNnFy7/AP1-Gcz-PA-P00-M4eob-Blj-WUW0oe-BAlmfx-LL3-Yh-CW4-EAp-Go-BEXPb-J-yz-DEPYBw249-h321-s-no-gm.png')">julio daqueles jeitoKKKKKKKKK</button>
+
+<button onclick="enviarImagem('https://i.ibb.co/GQxKZvST/gustavismo.png')">gustavismo</button>
+
+
+</div>
 
 <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
 <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
 
 <script>
-// 🔥 FIREBASE
 var firebaseConfig = {
   apiKey: "AIzaSyACKzi7eHGLRRhYyg1W6Zh7jWszkdrHDAw",
-  databaseURL: "https://gif-overlay-65024-default-rtdb.firebaseio.com"
+  authDomain: "gif-overlay-65024.firebaseapp.com",
+  databaseURL: "https://gif-overlay-65024-default-rtdb.firebaseio.com",
+  projectId: "gif-overlay-65024",
+  storageBucket: "gif-overlay-65024.appspot.com",
+  messagingSenderId: "6502465024",
+  appId: "1:6502465024:web:overlay"
 };
 
 firebase.initializeApp(firebaseConfig);
 
-var imagem = document.getElementById("imagem");
-
-firebase.database().ref("overlay").on("value", function(snapshot){
-  var data = snapshot.val();
-  if(data && data.imagem){
-    imagem.src = data.imagem;
-    imagem.style.opacity = "1";
-
-    setTimeout(()=>{
-      imagem.style.opacity = "0";
-    },5000);
-  }
-});
-
-// 💬 TWITCH CHAT
-function addMessage(nome, texto){
-  const div = document.createElement("div");
-  div.className = "msg";
-  div.innerHTML = `<b>${nome}:</b> ${texto}`;
-
-  const chat = document.getElementById("chat");
-  chat.appendChild(div);
-
-  if(chat.children.length > 8){
-    chat.removeChild(chat.firstChild);
-  }
+function enviarGif(url){
+  firebase.database().ref("overlay").set({
+    imagem: url
+  });
 }
-
-const socket = new WebSocket("wss://irc-ws.chat.twitch.tv:443");
-
-socket.onopen = () => {
-  socket.send("PASS SCHMOOPIIE");
-  socket.send("NICK justinfan" + Math.floor(Math.random()*100000));
-  socket.send("JOIN #youtubekaua");
-};
-
-socket.onmessage = (event) => {
-  const msg = event.data;
-
-  if(msg.includes("PRIVMSG")){
-    const nome = msg.split("!")[0].substring(1);
-    const texto = msg.split("PRIVMSG")[1].split(":")[1];
-    addMessage(nome, texto);
-  }
-};
 </script>
 
 </body>
