@@ -36,47 +36,32 @@ body{
   font-family: Arial;
 }
 
-/* 💎 MENSAGEM ESTILO STREAMLABS */
+/* ✨ MENSAGENS TRANSPARENTES */
 .msg{
-  background: rgba(0,0,0,0.35);
-  backdrop-filter: blur(6px);
-
-  margin: 10px 0;
-  padding: 10px 14px;
-  border-radius: 12px;
-
+  background: transparent;
+  margin: 8px 0;
+  padding: 4px 8px;
+  color: white;
   font-size: 22px;
   font-weight: bold;
-  color: white;
-
   text-align: right;
 
-  box-shadow: 0 10px 25px rgba(0,0,0,0.6);
+  text-shadow:
+    2px 2px 4px black,
+    0 0 8px black;
 
-  animation: slideRobusto 0.45s cubic-bezier(.22,1.2,.36,1);
+  animation: slideIn 0.3s ease;
 }
 
-@keyframes slideRobusto{
-  0%{
+@keyframes slideIn {
+  from {
     opacity: 0;
-    transform: translateX(80px) scale(0.95);
+    transform: translateX(40px);
   }
-  60%{
+  to {
     opacity: 1;
-    transform: translateX(-5px) scale(1.02);
+    transform: translateX(0);
   }
-  100%{
-    transform: translateX(0) scale(1);
-  }
-}
-
-.nome{
-  font-weight: bold;
-  margin-right: 6px;
-}
-
-.texto{
-  color: #fff;
 }
 </style>
 </head>
@@ -120,54 +105,28 @@ firebase.database().ref("overlay").on("value", function(snapshot){
   }
 });
 
-// ================= CORES =================
-function getRandomColor(){
-  const cores = [
-    "#ff4d4d", "#4dd2ff", "#ffd24d",
-    "#4dff88", "#ff66cc", "#66a3ff",
-    "#ff944d", "#00ffcc"
-  ];
-  return cores[Math.floor(Math.random() * cores.length)];
-}
-
 // ================= CHAT =================
+const chat = document.getElementById("chat");
+
 function addMessage(nome, texto, plataforma = "youtube", tipo = {}){
   const div = document.createElement("div");
   div.className = "msg";
 
   let badge = "";
-  let nomeColor = getRandomColor();
 
   if(plataforma === "youtube"){
     badge = "▶";
-
-    if(tipo.owner){
-      badge += " 👑";
-      nomeColor = "#ffd700";
-    }
-    else if(tipo.mod){
-      badge += " 🛡️";
-      nomeColor = "#00ffcc";
-    }
-    else if(tipo.member){
-      badge += " ⭐";
-      nomeColor = "#ff66cc";
-    }
+    if(tipo.owner) badge += " 👑";
+    if(tipo.mod) badge += " 🛡️";
+    if(tipo.member) badge += " ⭐";
   }
 
   if(plataforma === "twitch"){
     badge = "🟪";
-    nomeColor = "#9146FF";
   }
 
-  div.innerHTML = `
-    <span class="nome" style="color:${nomeColor}">
-      ${badge} ${nome}:
-    </span>
-    <span class="texto">${texto}</span>
-  `;
+  div.innerHTML = `<b>${badge} ${nome}:</b> ${texto}`;
 
-  const chat = document.getElementById("chat");
   chat.appendChild(div);
 
   if(chat.children.length > 8){
@@ -187,6 +146,7 @@ const API_KEY = "AIzaSyDoDTtN60hLIitjBW1YNxIQmuZW5YfflCg";
 let liveChatId = null;
 let nextPageToken = "";
 
+// 🔥 pega link do painel
 firebase.database().ref("chatYoutube").on("value", async function(snapshot){
   const data = snapshot.val();
   if(!data || !data.videoId) return;
