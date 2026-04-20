@@ -24,50 +24,50 @@ body{
   transition: opacity 0.7s ease, transform 0.7s ease;
 }
 
-/* 💬 TWITCH CHAT */
+/* 💬 CHAT */
 #chat{
-  position: fixed;
-  left: 20px;
-  bottom: 20px;
-  width: 320px;
-  font-family: Arial;
-}
-
-.msg {
-  background: transparent; /* remove fundo */
-  margin: 6px 0;
-  padding: 4px 8px;
-  border-radius: 0;
-  color: white;
-  font-size: 18px;
-  text-shadow: 
-    2px 2px 4px black,
-    0 0 6px black; /* deixa legível */
-
-  border: none;
-  box-shadow: none;
-}
-
-/* 🔴 YOUTUBE CHAT */
-#ytchat{
   position: fixed;
   right: 20px;
   bottom: 20px;
-  width: 350px;
-  height: 500px;
-  border: none;
+  width: 500px;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  font-family: Arial;
+}
+
+/* ✨ MENSAGENS TRANSPARENTES */
+.msg{
+  background: transparent;
+  margin: 8px 0;
+  padding: 4px 8px;
+  color: white;
+  font-size: 22px;
+  font-weight: bold;
+  text-align: right;
+
+  text-shadow:
+    2px 2px 4px black,
+    0 0 8px black;
+
+  animation: slideIn 0.3s ease;
+}
+
+@keyframes slideIn {
+  from {
+    opacity: 0;
+    transform: translateX(40px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
 }
 </style>
 </head>
 <body>
 
-<!-- TWITCH -->
 <div id="chat"></div>
-
-<!-- YOUTUBE -->
-<iframe id="ytchat"></iframe>
-
-<!-- GIF -->
 <img id="imagem">
 
 <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
@@ -82,7 +82,7 @@ var firebaseConfig = {
 
 firebase.initializeApp(firebaseConfig);
 
-// 🎬 GIF
+// ================= GIF =================
 var imagem = document.getElementById("imagem");
 
 firebase.database().ref("overlay").on("value", function(snapshot){
@@ -105,20 +105,102 @@ firebase.database().ref("overlay").on("value", function(snapshot){
   }
 });
 
-// 💬 TWITCH CHAT
-function addMessage(nome, texto){
+// ================= CHAT =================
+const chat = document.getElementById("chat");
+
+function addMessage(nome, texto, plataforma = "youtube", tipo = {}){
   const div = document.createElement("div");
   div.className = "msg";
-  div.innerHTML = `<b>${nome}:</b> ${texto}`;
 
-  const chat = document.getElementById("chat");
+  let badge = "";
+
+  if(plataforma === "youtube"){
+    badge = "▶";
+    if(tipo.owner) badge += " 👑";
+    if(tipo.mod) badge += " 🛡️";
+    if(tipo.member) badge += " ⭐";
+  }
+
+  if(plataforma === "twitch"){
+    badge = "🟪";
+  }
+
+  div.innerHTML = `<b>${badge} ${nome}:</b> ${texto}`;
+
   chat.appendChild(div);
 
   if(chat.children.length > 8){
     chat.removeChild(chat.firstChild);
   }
+
+  setTimeout(() => {
+    if(div.parentNode){
+      div.remove();
+    }
+  }, 50000);
 }
 
+// ================= YOUTUBE API =================
+const API_KEY = "AIzaSyDoDTtN60hLIitjBW1YNxIQmuZW5YfflCg";
+
+let liveChatId = null;
+let nextPageToken = "";
+
+// 🔥 pega link do painel
+firebase.database().ref("chatYoutube").on("value", async function(snapshot){
+  const data = snapshot.val();
+  if(!data || !data.videoId) return;
+
+  const videoId = data.videoId;
+
+  const res = await fetch(
+    `https://www.googleapis.com/youtube/v3/videos?part=liveStreamingDetails&id=${videoId}&key=${API_KEY}`
+  );
+
+  const json = await res.json();
+
+  if(json.items && json.items[0]){
+    liveChatId = json.items[0].liveStreamingDetails.activeLiveChatId;
+    nextPageToken = "";
+    buscarMensagensYT();
+  }
+});
+
+async function buscarMensagensYT(){
+  if(!liveChatId) return;
+
+  try{
+    const res = await fetch(
+      `https://www.googleapis.com/youtube/v3/liveChat/messages?liveChatId=${liveChatId}&part=snippet,authorDetails&key=${API_KEY}&pageToken=${nextPageToken}`
+    );
+
+    const data = await res.json();
+
+    nextPageToken = data.nextPageToken || "";
+
+    if(data.items){
+      data.items.forEach(msg=>{
+        addMessage(
+          msg.authorDetails.displayName,
+          msg.snippet.displayMessage,
+          "youtube",
+          {
+            owner: msg.authorDetails.isChatOwner,
+            mod: msg.authorDetails.isChatModerator,
+            member: msg.authorDetails.isChatSponsor
+          }
+        );
+      });
+    }
+
+  }catch(e){
+    console.log("Erro YT:", e);
+  }
+
+  setTimeout(buscarMensagensYT, 3000);
+}
+
+// ================= TWITCH =================
 const socket = new WebSocket("wss://irc-ws.chat.twitch.tv:443");
 
 socket.onopen = () => {
@@ -134,20 +216,9 @@ socket.onmessage = (event) => {
     const nome = msg.split("!")[0].substring(1);
     const texto = msg.split("PRIVMSG")[1].split(":")[1];
 
-    addMessage(nome, texto);
+    addMessage(nome, texto, "twitch");
   }
 };
-
-// 🔴 YOUTUBE CHAT (CONTROLADO PELO PAINEL)
-firebase.database().ref("chatYoutube").on("value", function(snapshot){
-  const data = snapshot.val();
-
-  if(data && data.videoId){
-    const iframe = document.getElementById("ytchat");
-
-    iframe.src = `https://www.youtube.com/live_chat?v=${data.videoId}&embed_domain=ytkauagamer.github.io`;
-  }
-});
 </script>
 
 </body>
