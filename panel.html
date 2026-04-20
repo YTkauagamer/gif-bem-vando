@@ -3,7 +3,6 @@
 <head>
 <meta charset="UTF-8">
 <title>Painel de GIFs</title>
-<link rel="icon" href="data:,">
 
 <style>
 body{
@@ -17,6 +16,7 @@ h1{
   margin-top:20px;
 }
 
+/* 🎬 GIFS */
 .botoes{
   margin-top:30px;
   display:flex;
@@ -25,6 +25,7 @@ h1{
   gap:10px;
 }
 
+/* BOTÕES */
 button{
   padding:10px 15px;
   border:none;
@@ -40,6 +41,38 @@ button:hover{
   transform: scale(1.05);
   background:#ff3385;
 }
+
+/* 🔥 DIVISÓRIA */
+.divisor{
+  width:80%;
+  margin:40px auto;
+  border-top:2px solid rgba(255,255,255,0.2);
+  position:relative;
+}
+
+.divisor span{
+  position:absolute;
+  top:-12px;
+  left:50%;
+  transform:translateX(-50%);
+  background:#111;
+  padding:0 15px;
+  color:#00ffcc;
+  font-weight:bold;
+}
+
+/* 📺 ÁREA DO CHAT */
+.chat-control{
+  margin-top:30px;
+}
+
+input{
+  padding:12px;
+  width:320px;
+  border-radius:8px;
+  border:none;
+  margin-top:10px;
+}
 </style>
 </head>
 <body>
@@ -49,60 +82,47 @@ button:hover{
 <div class="botoes">
 
 <button onclick="enviarGif('https://c.tenor.com/KO80NCIjQAUAAAAd/tenor.gif')">Gatinho Rindo</button>
-
 <button onclick="enviarGif('https://media1.tenor.com/m/agdCGfymskQAAAAC/ricagames-boxeador.gif')">Rica Games</button>
-
 <button onclick="enviarGif('https://media1.tenor.com/m/IZDWhH292tQAAAAC/falaro.gif')">FALARO</button>
-
 <button onclick="enviarGif('https://media.tenor.com/Pt9ZtY3HwjoAAAAj/emoji-face-orange-biting-nails.gif')">LARANJA</button>
-  
-<button onclick="enviarGif('https://i.ibb.co/HfD8jhy4/Captura-de-tela-2026-01-28-221616.png')">Print 1</button>
-  
-<button onclick="enviarGif('https://i.ibb.co/4nQddY5C/Opera-Instantaneo-2023-10-11-235208-scratch-mit-edu.png')">Scratch</button>
-  
-<button onclick="enviarGif('https://i.ibb.co/hFZ2CXZr/image.png')">Ser ou Não ser</button>
-  
-<button onclick="enviarGif('https://i.ibb.co/KcrxHG7b/IMG-20260107-WA0002.jpg')">Mário</button>
-  
-<button onclick="enviarGif('https://i.ibb.co/zTKLJv9Y/IMG-20260107-WA0003.jpg')">Luigi</button>
-  
-<button onclick="enviarGif('https://i.ibb.co/zWngG3Qq/IMG-20260107-WA0004.jpg')">Irmãos mário</button>
-  
-<button onclick="enviarGif('https://i.ibb.co/rGvnJhPT/Captura-de-tela-2026-01-28-205218.png')">HEHEHE Vandão</button>
-  
-<button onclick="enviarGif('https://i.ibb.co/KcyQ9YG3/Captura-de-tela-2026-01-12-211800.png')">Play skins</button>
-  
-<button onclick="enviarGif('https://media1.tenor.com/m/Ow6VVFQ6ptMAAAAd/renan-neandertal.gif')">Renandertal</button>
 
+<button onclick="enviarGif('https://i.ibb.co/HfD8jhy4/Captura-de-tela-2026-01-28-221616.png')">Print 1</button>
+<button onclick="enviarGif('https://i.ibb.co/4nQddY5C/Opera-Instantaneo-2023-10-11-235208-scratch-mit-edu.png')">Scratch</button>
+<button onclick="enviarGif('https://i.ibb.co/hFZ2CXZr/image.png')">Ser ou Não ser</button>
+
+<button onclick="enviarGif('https://i.ibb.co/KcrxHG7b/IMG-20260107-WA0002.jpg')">Mário</button>
+<button onclick="enviarGif('https://i.ibb.co/zTKLJv9Y/IMG-20260107-WA0003.jpg')">Luigi</button>
+<button onclick="enviarGif('https://i.ibb.co/zWngG3Qq/IMG-20260107-WA0004.jpg')">Irmãos</button>
+
+<button onclick="enviarGif('https://i.ibb.co/rGvnJhPT/Captura-de-tela-2026-01-28-205218.png')">Vandão</button>
+<button onclick="enviarGif('https://i.ibb.co/KcyQ9YG3/Captura-de-tela-2026-01-12-211800.png')">Play skins</button>
+
+<button onclick="enviarGif('https://media1.tenor.com/m/Ow6VVFQ6ptMAAAAd/renan-neandertal.gif')">Renan</button>
 <button onclick="enviarGif('https://media1.tenor.com/m/JeTFjIxwCigAAAAd/bolsonaro-gamer.gif')">Bolsonaro</button>
 
 <button onclick="enviarGif('https://media1.tenor.com/m/aGSAXma4EaAAAAAd/ednaldo-pereira-banido.gif')">BANIDO</button>
-
 <button onclick="enviarGif('https://media.tenor.com/3amxjgmRIlEAAAAi/renanplay-calvosfera.gif')">RENAN 2</button>
 
-<button onclick="enviarGif('https://media1.tenor.com/m/jwyqJ5NPhkYAAAAC/boa-noite-shadow-o-ouri%C3%A7o.gif')">BOA noite</button>
+<button onclick="enviarGif('https://media1.tenor.com/m/jwyqJ5NPhkYAAAAC/boa-noite-shadow-o-ouri%C3%A7o.gif')">Boa noite</button>
+<button onclick="enviarGif('https://media1.tenor.com/m/hzFHhdvD3lAAAAAd/gato-joia.gif')">Beleza</button>
 
-<button onclick="enviarGif('https://media1.tenor.com/m/hzFHhdvD3lAAAAAd/gato-joia.gif')">BELEZA</button>
+</div>
 
-<button onclick="enviarGif('https://i.ibb.co/4gShLZrm/Betty.png')">Betty</button>
+<!-- 🔥 DIVISÓRIA -->
+<div class="divisor">
+  <span>CONTROLE DO CHAT</span>
+</div>
 
-<button onclick="enviarGif('https://i.ibb.co/vxK5M155/Bravo.png')">Bravo vando</button>
+<!-- 📺 CONTROLE DO CHAT -->
+<div class="chat-control">
 
-<button onclick="enviarGif('https://i.ibb.co/4nwMbRqQ/Captura-de-tela-2026-01-02-120621.png')">1155 et</button>
+<h2>Atualizar Chat YouTube</h2>
 
-<button onclick="enviarGif('https://i.ibb.co/gMGqMpgT/Captura-de-tela-2026-01-06-024437.png')">RICA GAMES FALARO</button>
+<input id="liveLink" placeholder="Cole o link da live aqui">
 
-<button onclick="enviarGif('https://i.ibb.co/ccvF8mWL/Captura-de-tela-2026-02-10-233831.png')">luangameplay</button>
+<br><br>
 
-<button onclick="enviarGif('https://i.ibb.co/ns8bQwZL/vandouiii.png')">vandão</button>
-
-<button onclick="enviarGif('https://i.ibb.co/HDRNmFf2/julio.png')">julio</button>
-
-<button onclick="enviarGif('https://i.ibb.co/qM5PV86T/AP1-Gcz-Py9s7-WKSkp-Vc-Qkt-BUVay-Rb-Ogl7v3e7f-Ej-LQLAZE5hl-QPn-Gr-Qk-Df-Nw320-h181-s-no-gm.png')">vando ruim</button>
-
-<button onclick="enviarGif('https://i.ibb.co/fzHNnFy7/AP1-Gcz-PA-P00-M4eob-Blj-WUW0oe-BAlmfx-LL3-Yh-CW4-EAp-Go-BEXPb-J-yz-DEPYBw249-h321-s-no-gm.png')">julio kkk</button>
-
-<button onclick="enviarGif('https://i.ibb.co/GQxKZvST/gustavismo.png')">gustavismo</button>
+<button onclick="atualizarChat()">Atualizar Chat</button>
 
 </div>
 
@@ -112,23 +132,45 @@ button:hover{
 <script>
 var firebaseConfig = {
   apiKey: "AIzaSyACKzi7eHGLRRhYyg1W6Zh7jWszkdrHDAw",
-  authDomain: "gif-overlay-65024.firebaseapp.com",
-  databaseURL: "https://gif-overlay-65024-default-rtdb.firebaseio.com",
-  projectId: "gif-overlay-65024",
-  storageBucket: "gif-overlay-65024.appspot.com",
-  messagingSenderId: "6502465024",
-  appId: "1:6502465024:web:overlay"
+  databaseURL: "https://gif-overlay-65024-default-rtdb.firebaseio.com"
 };
 
 firebase.initializeApp(firebaseConfig);
 
-// 🔥 FUNÇÃO CORRETA
+// 🎬 GIF
 function enviarGif(url){
   firebase.database().ref("overlay").set({
     imagem: url
   });
+}
 
-  console.log("GIF enviado:", url);
+// 📺 CHAT
+function atualizarChat(){
+  const link = document.getElementById("liveLink").value;
+
+  if(!link){
+    alert("Cola o link da live");
+    return;
+  }
+
+  let videoId = "";
+
+  if(link.includes("watch?v=")){
+    videoId = link.split("v=")[1].split("&")[0];
+  }
+  else if(link.includes("/live/")){
+    videoId = link.split("/live/")[1].split("?")[0];
+  }
+  else{
+    alert("Link inválido");
+    return;
+  }
+
+  firebase.database().ref("chatYoutube").set({
+    videoId: videoId
+  });
+
+  alert("Chat atualizado!");
 }
 </script>
 
