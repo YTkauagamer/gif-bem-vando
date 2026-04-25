@@ -172,7 +172,54 @@ firebase.database().ref("chatYoutube").on("value", async function(snapshot){
   }
 });
 
+let mensagensLidas = new Set();
+
 async function buscarMensagensYT(){
+  if(!liveChatId) return;
+
+  try{
+    const res = await fetch(
+      `https://www.googleapis.com/youtube/v3/liveChat/messages?liveChatId=${liveChatId}&part=snippet,authorDetails&key=${API_KEY}&pageToken=${nextPageToken}`
+    );
+
+    const data = await res.json();
+
+    // 🔥 usa tempo recomendado pela API
+    const delay = data.pollingIntervalMillis || 5000;
+
+    nextPageToken = data.nextPageToken || "";
+
+    if(data.items){
+      data.items.forEach(msg=>{
+        if(mensagensLidas.has(msg.id)) return;
+
+        mensagensLidas.add(msg.id);
+
+        addMessage(
+          msg.authorDetails.displayName,
+          msg.snippet.displayMessage,
+          "youtube",
+          {
+            owner: msg.authorDetails.isChatOwner,
+            mod: msg.authorDetails.isChatModerator,
+            member: msg.authorDetails.isChatSponsor
+          }
+        );
+      });
+    }
+
+    // 🔁 continua com delay correto
+    setTimeout(buscarMensagensYT, delay);
+
+  }catch(e){
+    console.log("Erro YT:", e);
+
+    // 🧠 tenta recuperar sozinho
+    setTimeout(buscarMensagensYT, 10000);
+  }
+}
+  
+  async function buscarMensagensYT(){
   if(!liveChatId) return;
 
   try{
