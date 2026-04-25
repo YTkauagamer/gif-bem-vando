@@ -17,11 +17,12 @@ body{
   top: 50%;
   left: 50%;
   transform: translate(-50%, -50%) scale(1);
-  width: 800px;
-  height: 600px;
+  max-width: 70vw;
+  max-height: 70vh;
   object-fit: contain;
   opacity: 0;
-  transition: opacity 0.7s ease, transform 0.7s ease;
+  transition: opacity 0.5s ease, transform 0.5s ease;
+  filter: drop-shadow(0 0 20px rgba(0,255,255,0.7));
 }
 
 /* 💬 CHAT */
@@ -36,7 +37,7 @@ body{
   font-family: Arial;
 }
 
-/* ✨ MENSAGENS TRANSPARENTES */
+/* ✨ MENSAGENS */
 .msg{
   background: linear-gradient(135deg, rgba(0,0,0,0.7), rgba(30,30,30,0.7));
   backdrop-filter: blur(6px);
@@ -56,7 +57,7 @@ body{
     0 0 10px rgba(0,0,0,0.5),
     0 0 20px rgba(0,255,255,0.2);
 
-  animation: slideIn 0.2s ease;
+  animation: slideIn 0.3s ease;
 }
 
 @keyframes slideIn {
@@ -67,6 +68,17 @@ body{
   to {
     opacity: 1;
     transform: translateX(0) scale(1);
+  }
+}
+
+@keyframes fadeOut {
+  from {
+    opacity: 1;
+    transform: translateX(0);
+  }
+  to {
+    opacity: 0;
+    transform: translateX(40px);
   }
 }
 </style>
@@ -82,8 +94,8 @@ body{
 <script>
 // ================= FIREBASE =================
 var firebaseConfig = {
-  apiKey: "AIzaSyACKzi7eHGLRRhYyg1W6Zh7jWszkdrHDAw",
-  databaseURL: "https://gif-overlay-65024-default-rtdb.firebaseio.com"
+  apiKey: "SUA_KEY",
+  databaseURL: "SUA_DATABASE_URL"
 };
 
 firebase.initializeApp(firebaseConfig);
@@ -98,7 +110,7 @@ firebase.database().ref("overlay").on("value", function(snapshot){
     imagem.src = data.imagem;
 
     imagem.style.opacity = "0";
-    imagem.style.transform = "translate(-50%, -50%) scale(0.9)";
+    imagem.style.transform = "translate(-50%, -50%) scale(0.7)";
     imagem.offsetHeight;
 
     imagem.style.opacity = "1";
@@ -106,7 +118,7 @@ firebase.database().ref("overlay").on("value", function(snapshot){
 
     setTimeout(()=>{
       imagem.style.opacity = "0";
-      imagem.style.transform = "translate(-50%, -50%) scale(1.1)";
+      imagem.style.transform = "translate(-50%, -50%) scale(1.2)";
     },5000);
   }
 });
@@ -131,7 +143,9 @@ function addMessage(nome, texto, plataforma = "youtube", tipo = {}){
     badge = "🟪";
   }
 
-  div.innerHTML = `<b>${badge} ${nome}:</b> ${texto}`;
+  const cor = "#" + Math.floor(Math.random()*16777215).toString(16);
+
+  div.innerHTML = `<b style="color:${cor}">${badge} ${nome}:</b> ${texto}`;
 
   chat.appendChild(div);
 
@@ -140,139 +154,22 @@ function addMessage(nome, texto, plataforma = "youtube", tipo = {}){
   }
 
   setTimeout(() => {
-    if(div.parentNode){
-      div.remove();
-    }
+    div.style.animation = "fadeOut 0.4s ease forwards";
+    setTimeout(() => div.remove(), 400);
   }, 50000);
 }
 
-// ================= YOUTUBE API =================
-const API_KEY = "AIzaSyDoDTtN60hLIitjBW1YNxIQmuZW5YfflCg";
+// ================= YOUTUBE =================
+const API_KEY = "SUA_API_KEY";
 
 let liveChatId = null;
 let nextPageToken = "";
+let mensagensLidas = new Set();
 
-// 🔥 pega link do painel
 firebase.database().ref("chatYoutube").on("value", async function(snapshot){
   const data = snapshot.val();
   if(!data || !data.videoId) return;
 
   const videoId = data.videoId;
 
-  const res = await fetch(
-    `https://www.googleapis.com/youtube/v3/videos?part=liveStreamingDetails&id=${videoId}&key=${API_KEY}`
-  );
-
-  const json = await res.json();
-
-  if(json.items && json.items[0]){
-    liveChatId = json.items[0].liveStreamingDetails.activeLiveChatId;
-    nextPageToken = "";
-    buscarMensagensYT();
-  }
-});
-
-let mensagensLidas = new Set();
-
-async function buscarMensagensYT(){
-  if(!liveChatId) return;
-
-  try{
-    const res = await fetch(
-      `https://www.googleapis.com/youtube/v3/liveChat/messages?liveChatId=${liveChatId}&part=snippet,authorDetails&key=${API_KEY}&pageToken=${nextPageToken}`
-    );
-
-    const data = await res.json();
-
-    // 🔥 usa tempo recomendado pela API
-    const delay = data.pollingIntervalMillis || 5000;
-
-    nextPageToken = data.nextPageToken || "";
-
-    if(data.items){
-      data.items.forEach(msg=>{
-        if(mensagensLidas.has(msg.id)) return;
-
-        mensagensLidas.add(msg.id);
-
-        addMessage(
-          msg.authorDetails.displayName,
-          msg.snippet.displayMessage,
-          "youtube",
-          {
-            owner: msg.authorDetails.isChatOwner,
-            mod: msg.authorDetails.isChatModerator,
-            member: msg.authorDetails.isChatSponsor
-          }
-        );
-      });
-    }
-
-    // 🔁 continua com delay correto
-    setTimeout(buscarMensagensYT, delay);
-
-  }catch(e){
-    console.log("Erro YT:", e);
-
-    // 🧠 tenta recuperar sozinho
-    setTimeout(buscarMensagensYT, 10000);
-  }
-}
-  
-  async function buscarMensagensYT(){
-  if(!liveChatId) return;
-
-  try{
-    const res = await fetch(
-      `https://www.googleapis.com/youtube/v3/liveChat/messages?liveChatId=${liveChatId}&part=snippet,authorDetails&key=${API_KEY}&pageToken=${nextPageToken}`
-    );
-
-    const data = await res.json();
-
-    nextPageToken = data.nextPageToken || "";
-
-    if(data.items){
-      data.items.forEach(msg=>{
-        addMessage(
-          msg.authorDetails.displayName,
-          msg.snippet.displayMessage,
-          "youtube",
-          {
-            owner: msg.authorDetails.isChatOwner,
-            mod: msg.authorDetails.isChatModerator,
-            member: msg.authorDetails.isChatSponsor
-          }
-        );
-      });
-    }
-
-  }catch(e){
-    console.log("Erro YT:", e);
-  }
-
-  setTimeout(buscarMensagensYT, 3000);
-}
-
-// ================= TWITCH =================
-const socket = new WebSocket("wss://irc-ws.chat.twitch.tv:443");
-
-socket.onopen = () => {
-  socket.send("PASS SCHMOOPIIE");
-  socket.send("NICK justinfan" + Math.floor(Math.random()*100000));
-  socket.send("JOIN #youtubekaua");
-};
-
-socket.onmessage = (event) => {
-  const msg = event.data;
-
-  if(msg.includes("PRIVMSG")){
-    const nome = msg.split("!")[0].substring(1);
-    const texto = msg.split("PRIVMSG")[1].split(":")[1];
-
-    addMessage(nome, texto, "twitch");
-  }
-};
-</script>
-
-</body>
 </html>
