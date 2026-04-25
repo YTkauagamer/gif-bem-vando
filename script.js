@@ -12,6 +12,9 @@ var firebaseConfig = {
 firebase.initializeApp(firebaseConfig);
 var db = firebase.database();
 
+firebase.database().ref("chatYoutube").on("value", (snap)=>{
+  console.log("CHEGOU DO FIREBASE:", snap.val());
+});
 
 // ================= FUNÇÃO DE ENVIO (PAINEL) =================
 function enviarGif(url) {
