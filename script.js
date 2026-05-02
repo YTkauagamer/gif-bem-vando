@@ -60,12 +60,11 @@ if (document.getElementById("btn1")) {
 db.ref("overlay").on("value", (snap) => {
   if (!snap.val()) return;
 
-  const img = document.getElementById("imagem"); // 🔥 ID CORRETO
+  const img = document.getElementById("imagem");
   if (!img) return;
 
   const url = snap.val().imagem;
 
-  // animação igual do index
   img.src = url;
 
   img.style.opacity = "0";
@@ -75,9 +74,4 @@ db.ref("overlay").on("value", (snap) => {
 
   img.style.opacity = "1";
   img.style.transform = "translate(-50%, -50%) scale(1)";
-
-  setTimeout(() => {
-    img.style.opacity = "0";
-    img.style.transform = "translate(-50%, -50%) scale(1.1)";
-  }, 5000);
 });
