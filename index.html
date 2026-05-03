@@ -146,36 +146,98 @@ function addMessage(nome, texto, plataforma = "youtube", tipo = {}){
   }, 50000);
 }
 
-// ================= YOUTUBE API =================
+// ================= YOUTUBE API FIX =================
 const API_KEY = "AIzaSyDoDTtN60hLIitjBW1YNxIQmuZW5YfflCg";
 
 let liveChatId = null;
 let nextPageToken = "";
+let ytLoopRodando = false;
 
-// 🔥 pega link do painel
-firebase.database().ref("chatYoutube").on("value", async function(snapshot){
-  const data = snapshot.val();
-  if(!data || !data.videoId) return;
+// extrair ID de qualquer link
+function extrairVideoID(texto){
+  if(!texto) return null;
 
-  const videoId = data.videoId;
+  texto = texto.trim();
 
-  const res = await fetch(
-    `https://www.googleapis.com/youtube/v3/videos?part=liveStreamingDetails&id=${videoId}&key=${API_KEY}`
-  );
-
-  const json = await res.json();
-
-  if(json.items && json.items[0]){
-    liveChatId = json.items[0].liveStreamingDetails.activeLiveChatId;
-    nextPageToken = "";
-    buscarMensagensYT();
+  if(texto.includes("watch?v=")){
+    return texto.split("watch?v=")[1].split("&")[0];
   }
+
+  if(texto.includes("/live/")){
+    return texto.split("/live/")[1].split("?")[0];
+  }
+
+  if(texto.includes("youtu.be/")){
+    return texto.split("youtu.be/")[1].split("?")[0];
+  }
+
+  if(texto.length >= 11){
+    return texto.substring(0,11);
+  }
+
+  return null;
+}
+
+// ouvir painel
+firebase.database().ref("chatYoutube").on("value", async function(snapshot){
+
+  const data = snapshot.val();
+  if(!data) return;
+
+  const bruto = data.videoId || data.link || "";
+  const videoId = extrairVideoID(bruto);
+
+  if(!videoId){
+    console.log("❌ vídeo inválido");
+    return;
+  }
+
+  console.log("🎥 VIDEO ID:", videoId);
+
+  try{
+    const res = await fetch(
+      `https://www.googleapis.com/youtube/v3/videos?part=liveStreamingDetails&id=${videoId}&key=${API_KEY}`
+    );
+
+    const json = await res.json();
+    console.log(json);
+
+    if(
+      json.items &&
+      json.items[0] &&
+      json.items[0].liveStreamingDetails &&
+      json.items[0].liveStreamingDetails.activeLiveChatId
+    ){
+      liveChatId =
+        json.items[0].liveStreamingDetails.activeLiveChatId;
+
+      nextPageToken = "";
+
+      if(!ytLoopRodando){
+        ytLoopRodando = true;
+        buscarMensagensYT();
+      }
+
+      console.log("💬 CHAT CONECTADO");
+    }else{
+      console.log("❌ live sem chat ativo");
+    }
+
+  }catch(e){
+    console.log("Erro ao conectar YT:", e);
+  }
+
 });
 
 async function buscarMensagensYT(){
-  if(!liveChatId) return;
+
+  if(!liveChatId){
+    ytLoopRodando = false;
+    return;
+  }
 
   try{
+
     const res = await fetch(
       `https://www.googleapis.com/youtube/v3/liveChat/messages?liveChatId=${liveChatId}&part=snippet,authorDetails&key=${API_KEY}&pageToken=${nextPageToken}`
     );
@@ -185,7 +247,9 @@ async function buscarMensagensYT(){
     nextPageToken = data.nextPageToken || "";
 
     if(data.items){
-      data.items.forEach(msg=>{
+
+      data.items.forEach(msg => {
+
         addMessage(
           msg.authorDetails.displayName,
           msg.snippet.displayMessage,
@@ -196,14 +260,16 @@ async function buscarMensagensYT(){
             member: msg.authorDetails.isChatSponsor
           }
         );
+
       });
+
     }
 
   }catch(e){
-    console.log("Erro YT:", e);
+    console.log("Erro lendo chat:", e);
   }
 
-  setTimeout(buscarMensagensYT, 2000);
+  setTimeout(buscarMensagensYT, 3000);
 }
 
 // ================= TWITCH =================
