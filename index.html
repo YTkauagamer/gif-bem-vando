@@ -290,7 +290,7 @@ const socket = new WebSocket("wss://irc-ws.chat.twitch.tv:443");
 socket.onopen = () => {
   socket.send("PASS SCHMOOPIIE");
   socket.send("NICK justinfan" + Math.floor(Math.random()*100000));
-  socket.send("JOIN #Bisteconee");
+  socket.send("JOIN #Douglassola");
 };
 
 socket.onmessage = (event) => {
