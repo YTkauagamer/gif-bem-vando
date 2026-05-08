@@ -135,12 +135,14 @@ function addMessage(nome, texto, plataforma = "youtube", tipo = {}){
   if(plataforma === "youtube"){
     badge = "▶";
     if(tipo.owner) badge += " 👑";
-    if(tipo.mod) badge += " 🛡️";
+    if(tipo.mod) badge += " ✅";
     if(tipo.member) badge += " ⭐";
   }
 
   if(plataforma === "twitch"){
     badge = "🟪";
+    if(tipo.owner) badge += " 👑";
+    if(tipo.mod) badge += " ✅";
   }
 
   div.innerHTML = `<b>${badge} ${nome}:</b> ${texto}`;
