@@ -214,6 +214,83 @@ function atualizarChat(){
   alert("Chat atualizado!");
 }
 </script>
+<hr style="margin:40px 0;border:1px solid #333;">
 
+<h2>YouTube Live 🔴</h2>
+
+<input
+id="liveYoutube"
+placeholder="Link da live"
+style="
+width:420px;
+padding:10px;
+border:none;
+border-radius:8px;
+margin-bottom:10px;
+"
+>
+
+<button onclick="salvarLiveYoutube()">
+Salvar Live
+</button>
+
+<br><br>
+
+<h2>YouTube Canal 📺</h2>
+
+<input
+id="canalYoutube"
+placeholder="https://www.youtube.com/@Canal"
+style="
+width:420px;
+padding:10px;
+border:none;
+border-radius:8px;
+"
+>
+
+<button onclick="salvarCanalYoutube()">
+Salvar Canal
+</button>
+
+<script>
+
+function extrairVideoId(url){
+
+  const regex =
+    /(?:youtube\.com\/live\/|youtu\.be\/|v=)([^?&]+)/;
+
+  const match = url.match(regex);
+
+  return match ? match[1] : url;
+}
+
+function salvarLiveYoutube(){
+
+  const url =
+    document.getElementById("liveYoutube").value;
+
+  const videoId = extrairVideoId(url);
+
+  firebase.database().ref("chatYoutube").set({
+    videoId: videoId
+  });
+
+  console.log("Live salva:", videoId);
+}
+
+function salvarCanalYoutube(){
+
+  const canal =
+    document.getElementById("canalYoutube").value;
+
+  firebase.database().ref("youtubeCanal").set({
+    canal: canal
+  });
+
+  console.log("Canal salvo:", canal);
+}
+
+</script>
 </body>
 </html>
