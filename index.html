@@ -260,6 +260,7 @@ async function buscarMensagensYT(){
 
     nextPageToken = data.nextPageToken || "";
 
+    // 🔥 mensagens novas
     if(data.items){
 
       data.items.forEach(msg => {
@@ -279,13 +280,19 @@ async function buscarMensagensYT(){
 
     }
 
+    // 🔥 usa tempo REAL recomendado pelo YouTube
+    const tempo =
+      data.pollingIntervalMillis || 1000;
+
+    setTimeout(buscarMensagensYT, tempo);
+
   }catch(e){
+
     console.log("Erro lendo chat:", e);
+
+    setTimeout(buscarMensagensYT, 3000);
   }
-
-  setTimeout(buscarMensagensYT, 3000);
 }
-
 // ================= TWITCH =================
 const socket = new WebSocket("wss://irc-ws.chat.twitch.tv:443");
 
