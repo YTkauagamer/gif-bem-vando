@@ -75,6 +75,30 @@ input{
 }
 </style>
 </head>
+  <hr style="margin:40px 0; border:1px solid #333;">
+
+<h2>Controle do Chat 💬</h2>
+
+<button onclick="ligarChat()">▶️ Iniciar Chats</button>
+<button onclick="desligarChat()">⏹️ Parar Chats</button>
+
+<script>
+function ligarChat(){
+  firebase.database().ref("config").update({
+    chatAtivo: true
+  });
+
+  console.log("Chats ligados");
+}
+
+function desligarChat(){
+  firebase.database().ref("config").update({
+    chatAtivo: false
+  });
+
+  console.log("Chats desligados");
+}
+</script>
 <body>
 
 <h1>Painel de GIFs 🎬</h1>
