@@ -160,6 +160,19 @@ function addMessage(nome, texto, plataforma = "youtube", tipo = {}){
   }, 50000);
 }
 
+  // ================= CONTROLE CHAT =================
+firebase.database().ref("config/chatAtivo").on("value", (snapshot) => {
+
+  if(snapshot.val() === false){
+    chatAtivo = false;
+    console.log("⛔ chats pausados");
+  }else{
+    chatAtivo = true;
+    console.log("▶️ chats ativos");
+  }
+
+});
+  
 // ================= YOUTUBE API FIX =================
 const API_KEY = "AIzaSyDoDTtN60hLIitjBW1YNxIQmuZW5YfflCg";
 
@@ -305,7 +318,7 @@ socket.onopen = () => {
 socket.onmessage = (event) => {
   const msg = event.data;
 
-  if(msg.includes("PRIVMSG")){
+  if(chatAtivo && msg.includes("PRIVMSG")){
     const nome = msg.split("!")[0].substring(1);
     const texto = msg.split("PRIVMSG")[1].split(":")[1];
 
