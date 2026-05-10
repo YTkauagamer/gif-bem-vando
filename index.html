@@ -306,6 +306,77 @@ async function buscarMensagensYT(){
     setTimeout(buscarMensagensYT, 3000);
   }
 }
+
+  // ================= YOUTUBE AUTO CANAL =================
+
+firebase.database().ref("youtubeCanal").on("value", async (snapshot)=>{
+
+  const data = snapshot.val();
+
+  if(!data || !data.canal) return;
+
+  let canal = data.canal;
+
+  let handle = canal.split("@")[1];
+
+  if(!handle) return;
+
+  descobrirCanal(handle);
+
+});
+
+async function descobrirCanal(handle){
+
+  try{
+
+    const res = await fetch(
+      `https://www.googleapis.com/youtube/v3/search?part=snippet&type=channel&q=${handle}&key=${API_KEY}`
+    );
+
+    const data = await res.json();
+
+    if(!data.items || !data.items.length) return;
+
+    const channelId =
+      data.items[0].snippet.channelId;
+
+    procurarLiveCanal(channelId);
+
+  }catch(e){
+    console.log(e);
+  }
+}
+
+async function procurarLiveCanal(channelId){
+
+  try{
+
+    const res = await fetch(
+      `https://www.googleapis.com/youtube/v3/search?part=snippet&channelId=${channelId}&eventType=live&type=video&key=${API_KEY}`
+    );
+
+    const data = await res.json();
+
+    if(!data.items || !data.items.length){
+
+      setTimeout(()=>{
+        procurarLiveCanal(channelId);
+      },15000);
+
+      return;
+    }
+
+    const videoId =
+      data.items[0].id.videoId;
+
+    console.log("🔴 Live encontrada:", videoId);
+
+    iniciarLiveYoutube(videoId);
+
+  }catch(e){
+    console.log(e);
+  }
+}
 // ================= TWITCH =================
 const socket = new WebSocket("wss://irc-ws.chat.twitch.tv:443");
 
