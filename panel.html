@@ -290,7 +290,42 @@ function salvarCanalYoutube(){
 
   console.log("Canal salvo:", canal);
 }
+<h2>🎵 Tocar áudio</h2>
 
+<input type="text" id="audioUrl"
+placeholder="Cole URL do áudio">
+
+<button onclick="tocarAudio()">
+Tocar áudio
+</button>
+
+<button onclick="pararAudio()">
+Parar áudio
+</button>
+
+<script>
+function tocarAudio(){
+
+  const url =
+    document.getElementById("audioUrl").value;
+
+  firebase.database().ref("audio").set({
+    url: url,
+    tocar: true,
+    tempo: Date.now()
+  });
+
+}
+
+function pararAudio(){
+
+  firebase.database().ref("audio").set({
+    parar: true,
+    tempo: Date.now()
+  });
+
+}
+</script>
 </script>
 </body>
 </html>
