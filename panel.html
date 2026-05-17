@@ -325,6 +325,45 @@ function pararAudio(){
   });
 
 }
+    // ================= ÁUDIO OVERLAY =================
+
+const playerAudio = new Audio();
+
+playerAudio.volume = 1.0;
+
+firebase.database().ref("audio").on("value", (snapshot)=>{
+
+  const data = snapshot.val();
+
+  if(!data) return;
+
+  // tocar áudio
+  if(data.tocar && data.url){
+
+    playerAudio.pause();
+
+    playerAudio.src = data.url;
+
+    playerAudio.currentTime = 0;
+
+    playerAudio.play()
+    .catch(err=>{
+      console.log("erro áudio:", err);
+    });
+
+  }
+
+  // parar áudio
+  if(data.parar){
+
+    playerAudio.pause();
+
+    playerAudio.currentTime = 0;
+
+  }
+
+});
+
 </script>
 </script>
 </body>
