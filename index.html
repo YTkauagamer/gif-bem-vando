@@ -173,22 +173,15 @@ firebase.database().ref("config/chatAtivo").on("value", (snapshot) => {
 
 });
   
-// ================= YOUTUBE API FIX =================//
-
+// ================= YOUTUBE API FIX =================
 const API_KEY = "AIzaSyDoDTtN60hLIitjBW1YNxIQmuZW5YfflCg";
 
 let liveChatId = null;
 let nextPageToken = "";
 let ytLoopRodando = false;
-let ultimoVideoId = "";
-let chatAtivo = true;
 
-// evitar mensagens duplicadas
-const mensagensLidas = new Set();
-
-// ================= EXTRAIR VIDEO ID =================
+// extrair ID de qualquer link
 function extrairVideoID(texto){
-
   if(!texto) return null;
 
   texto = texto.trim();
@@ -211,262 +204,6 @@ function extrairVideoID(texto){
 
   return null;
 }
-
-// ================= CONTROLE CHAT =================
-firebase.database().ref("config/chatAtivo").on("value", (snapshot) => {
-
-  if(snapshot.val() === false){
-    chatAtivo = false;
-    console.log("⛔ chats pausados");
-  }else{
-    chatAtivo = true;
-    console.log("▶️ chats ativos");
-  }
-
-});
-
-// ================= PAINEL YOUTUBE =================
-firebase.database().ref("chatYoutube").on("value", async function(snapshot){
-
-  const data = snapshot.val();
-
-  if(!data) return;
-
-  const bruto = data.videoId || data.link || "";
-  const videoId = extrairVideoID(bruto);
-
-  if(!videoId){
-    console.log("❌ vídeo inválido");
-    return;
-  }
-
-  // evita reconectar na mesma live
-  if(videoId === ultimoVideoId){
-    return;
-  }
-
-  ultimoVideoId = videoId;
-
-  conectarYoutube(videoId);
-
-});
-
-// ================= CONECTAR YOUTUBE =================
-async function conectarYoutube(videoId){
-
-  try{
-
-    console.log("🎥 conectando:", videoId);
-
-    const res = await fetch(
-      `https://www.googleapis.com/youtube/v3/videos?part=liveStreamingDetails&id=${videoId}&key=${API_KEY}`
-    );
-
-    const json = await res.json();
-
-    console.log(json);
-
-    if(
-      json.items &&
-      json.items[0] &&
-      json.items[0].liveStreamingDetails &&
-      json.items[0].liveStreamingDetails.activeLiveChatId
-    ){
-
-      liveChatId =
-        json.items[0].liveStreamingDetails.activeLiveChatId;
-
-      nextPageToken = "";
-      mensagensLidas.clear();
-
-      console.log("💬 CHAT YOUTUBE CONECTADO");
-
-      if(!ytLoopRodando){
-        ytLoopRodando = true;
-        buscarMensagensYT();
-      }
-
-    }else{
-
-      console.log("❌ live sem chat");
-
-      setTimeout(()=>{
-        conectarYoutube(videoId);
-      },10000);
-
-    }
-
-  }catch(e){
-
-    console.log("❌ erro conectar youtube:", e);
-
-    setTimeout(()=>{
-      conectarYoutube(videoId);
-    },10000);
-
-  }
-}
-
-// ================= LOOP CHAT =================
-async function buscarMensagensYT(){
-
-  if(!liveChatId){
-    ytLoopRodando = false;
-    return;
-  }
-
-  try{
-
-    const res = await fetch(
-      `https://www.googleapis.com/youtube/v3/liveChat/messages?liveChatId=${liveChatId}&part=id,snippet,authorDetails&key=${API_KEY}&pageToken=${nextPageToken}`
-    );
-
-    const data = await res.json();
-
-    // quota ou erro
-    if(data.error){
-
-      console.log("❌ erro youtube:", data.error);
-
-      setTimeout(buscarMensagensYT, 10000);
-      return;
-    }
-
-    nextPageToken = data.nextPageToken || "";
-
-    if(data.items){
-
-      data.items.forEach(msg => {
-
-        // evitar duplicadas
-        if(mensagensLidas.has(msg.id)){
-          return;
-        }
-
-        mensagensLidas.add(msg.id);
-
-        // limitar memória
-        if(mensagensLidas.size > 5000){
-          mensagensLidas.clear();
-        }
-
-        if(chatAtivo){
-
-          addMessage(
-            msg.authorDetails.displayName,
-            msg.snippet.displayMessage,
-            "youtube",
-            {
-              owner: msg.authorDetails.isChatOwner,
-              mod: msg.authorDetails.isChatModerator,
-              member: msg.authorDetails.isChatSponsor
-            }
-          );
-
-        }
-
-      });
-
-    }
-
-    const tempo =
-      data.pollingIntervalMillis || 2000;
-
-    setTimeout(buscarMensagensYT, tempo);
-
-  }catch(e){
-
-    console.log("❌ erro lendo chat:", e);
-
-    setTimeout(buscarMensagensYT, 5000);
-
-  }
-}
-
-// ================= YOUTUBE AUTO CANAL =================
-firebase.database().ref("youtubeCanal").on("value", async (snapshot)=>{
-
-  const data = snapshot.val();
-
-  if(!data || !data.canal) return;
-
-  let canal = data.canal;
-
-  let handle = canal.split("@")[1];
-
-  if(!handle) return;
-
-  descobrirCanal(handle);
-
-});
-
-async function descobrirCanal(handle){
-
-  try{
-
-    const res = await fetch(
-      `https://www.googleapis.com/youtube/v3/search?part=snippet&type=channel&q=${handle}&key=${API_KEY}`
-    );
-
-    const data = await res.json();
-
-    if(!data.items || !data.items.length){
-      return;
-    }
-
-    const channelId =
-      data.items[0].snippet.channelId;
-
-    procurarLiveCanal(channelId);
-
-  }catch(e){
-    console.log(e);
-  }
-}
-
-async function procurarLiveCanal(channelId){
-
-  try{
-
-    const res = await fetch(
-      `https://www.googleapis.com/youtube/v3/search?part=snippet&channelId=${channelId}&eventType=live&type=video&key=${API_KEY}`
-    );
-
-    const data = await res.json();
-
-    if(!data.items || !data.items.length){
-
-      setTimeout(()=>{
-        procurarLiveCanal(channelId);
-      },15000);
-
-      return;
-    }
-
-    const videoId =
-      data.items[0].id.videoId;
-
-    console.log("🔴 live encontrada:", videoId);
-
-    if(videoId !== ultimoVideoId){
-      ultimoVideoId = videoId;
-      conectarYoutube(videoId);
-    }
-
-    setTimeout(()=>{
-      procurarLiveCanal(channelId);
-    },30000);
-
-  }catch(e){
-
-    console.log(e);
-
-    setTimeout(()=>{
-      procurarLiveCanal(channelId);
-    },15000);
-
-  }
-  }
 
 // ouvir painel
 firebase.database().ref("chatYoutube").on("value", async function(snapshot){
@@ -662,8 +399,6 @@ socket.onmessage = (event) => {
 </script>
 <link href="https://fonts.googleapis.com/css2?family=Noto+Color+Emoji&display=swap" rel="stylesheet">
 
-
-  
 </script>
 </body>
 </html>
