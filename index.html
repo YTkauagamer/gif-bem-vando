@@ -66,6 +66,15 @@ body{
     0 0 20px rgba(0,255,255,0.2);
 
   animation: slideIn 0.7s ease;
+
+  word-break: break-word;
+}
+
+/* emojis youtube */
+img.emoji{
+  width: 24px;
+  height: 24px;
+  vertical-align: middle;
 }
 
 @keyframes slideIn {
@@ -78,9 +87,6 @@ body{
     transform: translateX(0) scale(1);
   }
 }
-  
-
-  
 </style>
 </head>
 <body>
@@ -91,7 +97,10 @@ body{
 <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
 <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
 
+<script src="/socket.io/socket.io.js"></script>
+
 <script>
+
 // ================= FIREBASE =================
 var firebaseConfig = {
   apiKey: "AIzaSyACKzi7eHGLRRhYyg1W6Zh7jWszkdrHDAw",
@@ -125,6 +134,8 @@ firebase.database().ref("overlay").on("value", function(snapshot){
 
 // ================= CHAT =================
 const chat = document.getElementById("chat");
+
+let chatAtivo = true;
 
 function addMessage(nome, texto, plataforma = "youtube", tipo = {}){
   const div = document.createElement("div");
@@ -160,7 +171,7 @@ function addMessage(nome, texto, plataforma = "youtube", tipo = {}){
   }, 40000);
 }
 
-  // ================= CONTROLE CHAT =================
+// ================= CONTROLE CHAT =================
 firebase.database().ref("config/chatAtivo").on("value", (snapshot) => {
 
   if(snapshot.val() === false){
@@ -172,211 +183,28 @@ firebase.database().ref("config/chatAtivo").on("value", (snapshot) => {
   }
 
 });
-  
-// ================= YOUTUBE API FIX =================
-const API_KEY = "AIzaSyDoDTtN60hLIitjBW1YNxIQmuZW5YfflCg";
 
-let liveChatId = null;
-let nextPageToken = "";
-let ytLoopRodando = false;
+// ================= YOUTUBE CHAT NOVO =================
 
-// extrair ID de qualquer link
-function extrairVideoID(texto){
-  if(!texto) return null;
+const ytSocket = io();
 
-  texto = texto.trim();
+ytSocket.on("mensagem", (msg) => {
 
-  if(texto.includes("watch?v=")){
-    return texto.split("watch?v=")[1].split("&")[0];
-  }
+  if(!chatAtivo) return;
 
-  if(texto.includes("/live/")){
-    return texto.split("/live/")[1].split("?")[0];
-  }
-
-  if(texto.includes("youtu.be/")){
-    return texto.split("youtu.be/")[1].split("?")[0];
-  }
-
-  if(texto.length >= 11){
-    return texto.substring(0,11);
-  }
-
-  return null;
-}
-
-// ouvir painel
-firebase.database().ref("chatYoutube").on("value", async function(snapshot){
-
-  const data = snapshot.val();
-  if(!data) return;
-
-  const bruto = data.videoId || data.link || "";
-  const videoId = extrairVideoID(bruto);
-
-  if(!videoId){
-    console.log("❌ vídeo inválido");
-    return;
-  }
-
-  console.log("🎥 VIDEO ID:", videoId);
-
-  try{
-    const res = await fetch(
-      `https://www.googleapis.com/youtube/v3/videos?part=liveStreamingDetails&id=${videoId}&key=${API_KEY}`
-    );
-
-    const json = await res.json();
-    console.log(json);
-
-    if(
-      json.items &&
-      json.items[0] &&
-      json.items[0].liveStreamingDetails &&
-      json.items[0].liveStreamingDetails.activeLiveChatId
-    ){
-      liveChatId =
-        json.items[0].liveStreamingDetails.activeLiveChatId;
-
-      nextPageToken = "";
-
-      if(!ytLoopRodando){
-        ytLoopRodando = true;
-        buscarMensagensYT();
-      }
-
-      console.log("💬 CHAT CONECTADO");
-    }else{
-      console.log("❌ live sem chat ativo");
+  addMessage(
+    msg.nome,
+    msg.mensagem,
+    "youtube",
+    {
+      owner: msg.owner,
+      mod: msg.mod,
+      member: msg.member
     }
-
-  }catch(e){
-    console.log("Erro ao conectar YT:", e);
-  }
+  );
 
 });
 
-async function buscarMensagensYT(){
-
-  if(!liveChatId){
-    ytLoopRodando = false;
-    return;
-  }
-
-  try{
-
-    const res = await fetch(
-      `https://www.googleapis.com/youtube/v3/liveChat/messages?liveChatId=${liveChatId}&part=snippet,authorDetails&key=${API_KEY}&pageToken=${nextPageToken}`
-    );
-
-    const data = await res.json();
-
-    nextPageToken = data.nextPageToken || "";
-
-    // 🔥 mensagens novas
-    if(data.items){
-
-      data.items.forEach(msg => {
-
-        addMessage(
-          msg.authorDetails.displayName,
-          msg.snippet.displayMessage,
-          "youtube",
-          {
-            owner: msg.authorDetails.isChatOwner,
-            mod: msg.authorDetails.isChatModerator,
-            member: msg.authorDetails.isChatSponsor
-          }
-        );
-
-      });
-
-    }
-
-    // 🔥 usa tempo REAL recomendado pelo YouTube
-    const tempo =
-      data.pollingIntervalMillis || 1000;
-
-    setTimeout(buscarMensagensYT, tempo);
-
-  }catch(e){
-
-    console.log("Erro lendo chat:", e);
-
-    setTimeout(buscarMensagensYT, 3000);
-  }
-}
-
-  // ================= YOUTUBE AUTO CANAL =================
-
-firebase.database().ref("youtubeCanal").on("value", async (snapshot)=>{
-
-  const data = snapshot.val();
-
-  if(!data || !data.canal) return;
-
-  let canal = data.canal;
-
-  let handle = canal.split("@")[1];
-
-  if(!handle) return;
-
-  descobrirCanal(handle);
-
-});
-
-async function descobrirCanal(handle){
-
-  try{
-
-    const res = await fetch(
-      `https://www.googleapis.com/youtube/v3/search?part=snippet&type=channel&q=${handle}&key=${API_KEY}`
-    );
-
-    const data = await res.json();
-
-    if(!data.items || !data.items.length) return;
-
-    const channelId =
-      data.items[0].snippet.channelId;
-
-    procurarLiveCanal(channelId);
-
-  }catch(e){
-    console.log(e);
-  }
-}
-
-async function procurarLiveCanal(channelId){
-
-  try{
-
-    const res = await fetch(
-      `https://www.googleapis.com/youtube/v3/search?part=snippet&channelId=${channelId}&eventType=live&type=video&key=${API_KEY}`
-    );
-
-    const data = await res.json();
-
-    if(!data.items || !data.items.length){
-
-      setTimeout(()=>{
-        procurarLiveCanal(channelId);
-      },15000);
-
-      return;
-    }
-
-    const videoId =
-      data.items[0].id.videoId;
-
-    console.log("🔴 Live encontrada:", videoId);
-
-    iniciarLiveYoutube(videoId);
-
-  }catch(e){
-    console.log(e);
-  }
-}
 // ================= TWITCH =================
 const socket = new WebSocket("wss://irc-ws.chat.twitch.tv:443");
 
@@ -396,9 +224,10 @@ socket.onmessage = (event) => {
     addMessage(nome, texto, "twitch");
   }
 };
-</script>
-<link href="https://fonts.googleapis.com/css2?family=Noto+Color+Emoji&display=swap" rel="stylesheet">
 
 </script>
+
+<link href="https://fonts.googleapis.com/css2?family=Noto+Color+Emoji&display=swap" rel="stylesheet">
+
 </body>
 </html>
