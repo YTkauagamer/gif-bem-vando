@@ -26,7 +26,11 @@ body {
   display: flex;
   flex-direction: column;
   align-items: flex-end;
-  font-family: Arial, "Noto Color Emoji";
+  font-size: 20px;
+font-weight: 600;
+font-family: Arial, "Noto Color Emoji", "Segoe UI Emoji", sans-serif;
+white-space: pre-wrap;
+word-break: break-word;
 }
 
 /* 💬 MENSAGEM */
